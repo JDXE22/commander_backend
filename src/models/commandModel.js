@@ -1,11 +1,9 @@
 import commands from "../config/commands.json" with {type:"json" }
 export class CommandModel {
     constructor(){
-        this.commands= commands
+        this.commands= Array.isArray(commands) ? commands[0] : commands
     }
-    static getAll(){
-        return this.commands
-
-
+     getAll = () => {
+        return commands
     }
 }

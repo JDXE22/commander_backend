@@ -3,10 +3,8 @@ export class CommandController{
         this.commandModel = commandModel
     }
 
-    getAll = (req, res) => {
-        const {command} = req.query;
-        
-        const commands = this.commandModel.getAll({command})
+    getAll = (req, res) => {        
+        const commands = this.commandModel.getAll()
 
         res.json(commands)
     }
