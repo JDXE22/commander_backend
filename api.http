@@ -1,2 +1,3 @@
 ### Get All Commands
 GET http://localhost:3000/command
+Accept: application/json

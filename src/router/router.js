@@ -1,12 +1,12 @@
 import { Router } from "express"
+import { CommandController } from "../controllers/commandsController.js";
 
-export const commandRouter = ()=> {
+export const commandRouter = (commandModel)=> {
     const router = Router();
 
-    router.get("/", (req, res)=> {
-      res.status(200).send("Command endpoint")
-        
-    })
+    const commandController = new CommandController({commandModel})
+
+    router.get("/", commandController.getAll)
 
 
     return router;
