@@ -9,7 +9,6 @@ export const createApp = ({commandModel}) =>{
     
     app.use(express.json())
     
-    app.use(json())
     
     app.use("/command", commandRouter({commandModel}))
     
