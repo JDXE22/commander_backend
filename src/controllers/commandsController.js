@@ -3,8 +3,9 @@ export class CommandController{
         this.commandModel = commandModel
     }
 
-    getAll = async(req, res) => {
-        const commands = await this.commandModel.getAll()
+    getAll = async (req, res) => {
+        
+        const commands = await this.commandModel.getAll
 
         res.json(commands)
     }
