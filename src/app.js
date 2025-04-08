@@ -11,7 +11,7 @@ app.use(express.json())
 
 app.use(json())
 
-app.use("/command", commandRouter)
+app.use("/command", commandRouter())
 
 app.listen(PORT, ()=> {
     console.log(`Server is running on port ${PORT}`);

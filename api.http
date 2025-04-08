@@ -1,2 +1,2 @@
 ### Get All Commands
-GET http://localhost:3000/command 
+GET http://localhost:3000/command

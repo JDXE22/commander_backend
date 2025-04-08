@@ -3,7 +3,7 @@ import { Router } from "express"
 export const commandRouter = ()=> {
     const router = Router();
 
-    router.get("/command", (req, res)=> {
+    router.get("/", (req, res)=> {
       res.status(200).send("Command endpoint")
         
     })
