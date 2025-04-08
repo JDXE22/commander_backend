@@ -4,13 +4,15 @@
   "description": "Commander is a simple command-driven snippet generator that maps specific command inputs to predefined text outputs.",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --watch src/app.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "dotenv": "16.4.7",
     "express": "5.1.0"
   }
 }
