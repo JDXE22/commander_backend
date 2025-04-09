@@ -7,8 +7,11 @@ export const commandRouter = ({commandModel})=> {
     const commandController = new CommandController({commandModel})
 
     router.get("/", commandController.getAll)
+    
+    router.get("/:id", commandController.getById)
 
     router.get("/:name", commandController.getByName)
+
 
 
     return router;

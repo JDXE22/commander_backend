@@ -3,7 +3,7 @@ GET http://localhost:3000/command
 
 ### Get Command by Name
 
-GET http://localhost:3000/command/hi
+GET http://localhost:3000/command/hi1
 
 ### Get Command by ID 
 GET http://localhost:3000/command/1
