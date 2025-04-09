@@ -9,9 +9,9 @@ export class CommandController{
         res.json(commands)
     }
 
-    getByName = (req, res) => {
-        const {name} = req.params
-        const commandData = this.commandModel.getByName({name})
+    getByCommand = (req, res) => {
+        const {command} = req.params
+        const commandData = this.commandModel.getByCommand({command})
         res.json(commandData)
     }
 
