@@ -8,4 +8,10 @@ export class CommandController{
 
         res.json(commands)
     }
+
+    getByCommand = (req, res) => {
+        const {command }= req.params
+        const commandData = this.commandModel.getByCommand(command)
+        res.json(commandData)
+    }
 }

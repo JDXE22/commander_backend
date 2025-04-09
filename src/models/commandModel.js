@@ -6,4 +6,12 @@ export class CommandModel {
      getAll = () => {
         return commands
     }
+
+    getByCommand = (command) => {
+        const commandData = this.commands.find((cmd)=> cmd.command === command)
+
+        if(!commandData) return 
+
+        return commandData
+    }
 }
