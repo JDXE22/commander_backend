@@ -15,10 +15,10 @@ export class CommandModel {
     }
   }
 
-   getByName = ({ name }) => {
-    if (name) {
+   getByCommand = ({ command }) => {
+    if (command) {
       const commandByName = commands.filter(
-        (cmd) => cmd.name.toLowerCase() === name.toLowerCase()
+        (cmd) => cmd.command.toLowerCase() === command.toLowerCase()
       );
       return commandByName;
     }
