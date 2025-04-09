@@ -20,4 +20,10 @@ export class CommandController{
         const commandData = this.commandModel.getById({id})
         res.json(commandData)
     }
+
+    saveCommand = (req, res) => {
+        const { body} = req
+        const commandData = this.commandModel.createCommand({input: body})
+        res.json(commandData)
+    }
 }
