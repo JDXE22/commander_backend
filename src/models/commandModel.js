@@ -7,11 +7,11 @@ export class CommandModel {
         return commands
     }
 
-    getByCommand = (command) => {
-        const commandData = this.commands.find((cmd)=> cmd.command === command)
-
-        if(!commandData) return 
-
-        return commandData
+    getByName = ({name}) => {
+        if(name){
+            return commands.filter((cmd)=> {
+                cmd.name.toLowerCase() === name.toLowerCase()
+            })
+        }
     }
 }
