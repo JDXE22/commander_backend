@@ -1,9 +1,37 @@
 import commands from "../config/commands.json" with {type:"json" }
+
 export class CommandModel {
-    constructor(){
-        this.commands= Array.isArray(commands) ? commands[0] : commands
+  constructor() {
+    this.commands = commands;
+  }
+  getAll = () => {
+    return commands;
+  };
+
+   getById = ({id}) => {
+    if (id) {
+        const commandById = commands.find((cmd) => cmd.id === id)
+        return commandById
     }
-     getAll = () => {
-        return commands
+  }
+
+   getByCommand = ({ command }) => {
+    if (command) {
+      const commandByName = commands.filter(
+        (cmd) => cmd.command.toLowerCase() === command.toLowerCase()
+      );
+      return commandByName;
     }
+  };
+
+  createCommand = ({ input }) => {
+    const newCommand = {
+      id: commands.length + 1,
+      ...input
+    }
+
+    commands.push(newCommand)
+
+    return newCommand
+  }
 }

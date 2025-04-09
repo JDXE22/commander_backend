@@ -8,4 +8,22 @@ export class CommandController{
 
         res.json(commands)
     }
+
+    getByCommand = (req, res) => {
+        const command = decodeURIComponent(req.params.command)
+        const commandData = this.commandModel.getByCommand({command})
+        res.json(commandData)
+    }
+
+    getById = (req, res) => {
+        const {id} = req.params
+        const commandData = this.commandModel.getById({id})
+        res.json(commandData)
+    }
+
+    saveCommand = (req, res) => {
+        const { body} = req
+        const commandData = this.commandModel.createCommand({input: body})
+        res.json(commandData)
+    }
 }

@@ -1,4 +1,4 @@
-import express, { json } from "express";
+import express from "express";
 import 'dotenv/config'
 import { commandRouter } from "./router/router.js";
 
