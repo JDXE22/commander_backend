@@ -22,6 +22,16 @@ export class CommandModel {
       );
       return commandByName;
     }
-    return [];
   };
+
+  createCommand = ({ input }) => {
+    const newCommand = {
+      id: commands.length + 1,
+      ...input
+    }
+
+    commands.push(newCommand)
+
+    return newCommand
+  }
 }
