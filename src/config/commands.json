@@ -1,4 +1,9 @@
 [{
-  "/hi1": "Hello, welcome to our service!",
-  "/bye1": "Goodbye, have a great day!"
-}]
+  "name": "Hi",
+  "/hi1": "Hello, welcome to our service!"
+},
+{
+  "name": "Bye",
+  "/hi1": "Bye, have a nice day!"
+}
+]
