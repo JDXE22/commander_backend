@@ -10,7 +10,7 @@ export class CommandController{
     }
 
     getByCommand = (req, res) => {
-        const {command} = req.params
+        const command = decodeURIComponent(req.params.command)
         const commandData = this.commandModel.getByCommand({command})
         res.json(commandData)
     }

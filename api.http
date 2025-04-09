@@ -1,9 +1,9 @@
 ### Get All Commands
 GET http://localhost:3000/command
 
-### Get Command by Name
+### Get Command by Command
 
-GET http://localhost:3000/command/name/
+GET http://localhost:3000/command/command/%2Fbye1
 
 ### Get Command by ID 
 GET http://localhost:3000/command/1
