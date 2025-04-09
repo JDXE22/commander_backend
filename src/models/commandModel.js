@@ -9,9 +9,12 @@ export class CommandModel {
 
     getByName = ({name}) => {
         if(name){
-            return commands.filter((cmd)=> {
-                cmd.name.toLowerCase() === name.toLowerCase()
-            })
+            const commandByName = commands.filter((cmd)=> cmd.name.toLowerCase() === name.toLowerCase())
+            return commandByName
         }
+
+        return []
     }
+
+
 }
