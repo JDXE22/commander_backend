@@ -8,6 +8,8 @@ export const commandRouter = ({commandModel})=> {
 
     router.get("/", commandController.getAll)
 
+    router.get("/:command", commandController.getByCommand)
+
 
     return router;
 }
