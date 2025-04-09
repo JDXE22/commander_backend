@@ -14,4 +14,10 @@ export class CommandController{
         const commandData = this.commandModel.getByName({name})
         res.json(commandData)
     }
+
+    getById = (req, res) => {
+        const {id} = req.params
+        const commandData = this.commandModel.getById({id})
+        res.json(commandData)
+    }
 }
