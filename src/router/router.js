@@ -12,8 +12,7 @@ export const commandRouter = ({commandModel})=> {
 
     router.get("/:id", commandController.getById)
 
-
-
+    router.post("/", commandController.saveCommand)
 
     return router;
 }

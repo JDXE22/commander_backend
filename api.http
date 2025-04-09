@@ -3,8 +3,18 @@ GET http://localhost:3000/command
 
 ### Get Command by Command
 
-GET http://localhost:3000/command/command/%2Fbye1
+GET http://localhost:3000/command/command/%2Fhi2
 
 ### Get Command by ID 
 GET http://localhost:3000/command/1
+
+### Create Command
+POST http://localhost:3000/command
+Content-Type: application/json
+
+{
+    "name": "hi2",
+    "command": "/hi2",
+    "text": "Welcome to the bot"
+}
 
