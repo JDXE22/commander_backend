@@ -1,20 +1,24 @@
 import commands from "../config/commands.json" with {type:"json" }
 export class CommandModel {
-    constructor(){
-        this.commands= Array.isArray(commands) ? commands[0] : commands
+  constructor() {
+    this.commands = commands;
+  }
+  getAll = () => {
+    return commands;
+  };
+
+  getByName = ({ name }) => {
+    if (name) {
+      const commandByName = commands.filter(
+        (cmd) => cmd.name.toLowerCase() === name.toLowerCase()
+      );
+      return commandByName;
     }
-     getAll = () => {
-        return commands
-    }
+    return [];
+  };
 
-    getByName = ({name}) => {
-        if(name){
-            const commandByName = commands.filter((cmd)=> cmd.name.toLowerCase() === name.toLowerCase())
-            return commandByName
-        }
-
-        return []
-    }
-
-
+  getById = ({id}) => {
+    const commandById = commands.findIndex((cmd) => cmd.id === id)
+    return commandById
+  }
 }
