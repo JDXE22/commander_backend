@@ -8,7 +8,7 @@ export const commandRouter = ({commandModel})=> {
 
     router.get("/", commandController.getAll)
     
-    router.get("/name/:name", commandController.getByName)
+    router.get("/command/:command", commandController.getByName)
 
     router.get("/:id", commandController.getById)
 
