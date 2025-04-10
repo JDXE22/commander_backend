@@ -34,4 +34,15 @@ export class CommandModel {
 
     return newCommand
   }
+
+  updateCommand =({ id, input}) => {
+    const commandIndex = commands.findIndex((cmd) => cmd.id === id)
+    if(commandIndex !== -1){
+      commands[commandIndex] = {
+        ...commands[commandIndex],
+        ...input
+      }
+      return commands[commandIndex]
+    }
+  }
 }
