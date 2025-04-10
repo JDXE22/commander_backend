@@ -45,4 +45,12 @@ export class CommandModel {
       return commands[commandIndex];
     }
   };
+
+  delete = ({ id }) => {
+      const commandById = commands.findIndex((cmd) => cmd.id === id);    
+      if (commandById === -1) return false; 
+    commands.splice(commandById, 1)
+
+    return {message: `Command has been deleted successfully`}
+  };
 }
