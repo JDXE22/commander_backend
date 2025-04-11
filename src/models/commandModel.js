@@ -8,14 +8,14 @@ export class CommandModel {
     return commands;
   };
 
-   getById = ({id}) => {
+  getById = ({ id }) => {
     if (id) {
-        const commandById = commands.find((cmd) => cmd.id === id)
-        return commandById
+      const commandById = commands.find((cmd) => cmd.id === id);
+      return commandById;
     }
-  }
+  };
 
-   getByCommand = ({ command }) => {
+  getByCommand = ({ command }) => {
     if (command) {
       const commandByName = commands.filter(
         (cmd) => cmd.command.toLowerCase() === command.toLowerCase()
@@ -27,11 +27,30 @@ export class CommandModel {
   createCommand = ({ input }) => {
     const newCommand = {
       id: commands.length + 1,
-      ...input
+      ...input,
+    };
+
+    commands.push(newCommand);
+
+    return newCommand;
+  };
+
+  updateCommand = ({ id, input }) => {
+    const commandIndex = commands.findIndex((cmd) => cmd.id === id);
+    if (commandIndex !== -1) {
+      commands[commandIndex] = {
+        ...commands[commandIndex],
+        ...input,
+      };
+      return commands[commandIndex];
     }
+  };
 
-    commands.push(newCommand)
+  delete = ({ id }) => {
+      const commandById = commands.findIndex((cmd) => cmd.id === id);    
+      if (commandById === -1) return false; 
+    commands.splice(commandById, 1)
 
-    return newCommand
-  }
+    return {message: `Command has been deleted successfully`}
+  };
 }
