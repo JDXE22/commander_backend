@@ -1,4 +1,4 @@
-import commands from "../config/commands.json" with {type:"json" }
+import commands from "../../config/commands.json" with {type:"json" }
 
 export class CommandModel {
   constructor() {
