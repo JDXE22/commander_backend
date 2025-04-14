@@ -1,4 +1,4 @@
 import { createApp } from "./app.js";
-import { CommandModel } from "./models/mongo/commandModel.js";
+import { CommandModel as NewMongoModel } from "./models/mongo/CommandModel.js";
 
-createApp({ commandModel: new CommandModel()})
+createApp({ commandModel: new NewMongoModel()})

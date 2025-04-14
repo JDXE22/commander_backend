@@ -3,8 +3,8 @@ export class CommandController {
     this.commandModel = commandModel;
   }
 
-  getAll = (req, res) => {
-    const commands = this.commandModel.getAll();
+  getAll = async (req, res) => {
+    const commands = await this.commandModel.getAll();
 
     res.json(commands);
   };
