@@ -1,4 +1,4 @@
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
 
 const uri = process.env.MONGODB_URI
 const client = new MongoClient(uri, {
@@ -25,28 +25,29 @@ export class CommandModel {
 
 
     getAll = async () => {
-      const db = await connect()
-
-      console.log('Connected to MongoDB');
-      
+      const db = await connect()      
 
       return db.find().toArray()
     };
   
-    getById = ({ id }) => {
-      if (id) {
-        const commandById = commands.find((cmd) => cmd.id === id);
-        return commandById;
-      }
+    getById = async ({ id }) => {
+      const db = await connect()     
+      const objectId = new ObjectId(id)
+      return db.findOne({_id: objectId})
+
     };
   
-    getByCommand = ({ command }) => {
-      if (command) {
-        const commandByName = commands.filter(
-          (cmd) => cmd.command.toLowerCase() === command.toLowerCase()
-        );
-        return commandByName;
+    getByCommand = async ({ command }) => {
+      const db = await connect()     
+      if(genre){
+        return db.find({
+          command: { 
+            $SelemMatch: command,
+            $options: "i"
+          }
+        }).toArray()
       }
+      return db.find({}).toArray()
     };
   
     createCommand = ({ input }) => {
