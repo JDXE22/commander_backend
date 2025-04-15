@@ -22,7 +22,7 @@ export class CommandController {
   };
 
   saveCommand = async (req, res) => {
-    const { body } = req.body;
+    const body = req.body;
     const commandData = await this.commandModel.createCommand({ input: body });
     res.json(commandData);
   };
@@ -30,7 +30,7 @@ export class CommandController {
   updateCommand = async (req, res) => {
     const { id } = req.params;
 
-    const { body } = req.body;
+    const body = req.body;
 
     const commandUpdatedData = await this.commandModel.updateCommand({
       id,
