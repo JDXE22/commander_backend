@@ -14,7 +14,9 @@ export const commandRouter = ({commandModel})=> {
 
     router.post("/", commandController.saveCommand)
 
-    router.patch("/:id", commandController.updateCommand)
+    router.patch("/command/:id", commandController.updateCommand)
+
+    router.delete("/command/:id", commandController.delete)
 
     return router;
 }

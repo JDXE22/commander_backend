@@ -1,75 +1,93 @@
-import { MongoClient, ServerApiVersion } from "mongodb";
+import mongoose from "mongoose";
+import { commandSchema } from "../../schemas/mongo-schema/commandSchema.js";
 
-const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri, {
+const url = process.env.DATABASE_URL;
+const clientOptions = {
   serverApi: {
-    version: ServerApiVersion.v1,
+    version: "1",
     strict: true,
     deprecationErrors: true,
   },
-});
+};
 
 async function connect() {
   try {
-    await client.connect();
-    const database = client.db("database");
-    return database.collection("CMD");
+    await mongoose.connect(url, clientOptions);
+    await mongoose.connection.db.admin().command({ ping: 1 });
+    console.log("Connected to MongoDB");
   } catch (error) {
     console.error("Error connecting to the database");
     console.error(error);
-    await client.close();
+    await mongoose.disconnect();
   }
 }
+
+const commandMongooseModel = mongoose.model(
+  "command",
+  commandSchema,
+  "commands"
+);
+
+connect().then(() => console.log("Connection established."));
+
 export class CommandModel {
-  static async getAll() {
-    const db = await connect()
+  getAll = async () => {
+    const result = await commandMongooseModel.find({});
 
-    return db.find({}).toArray()
-  }
+    return result;
+  };
 
-  static async getById({ id }) {
-    if (id) {
-      const commandById = commands.find((cmd) => cmd.id === id);
-      return commandById;
+  getById = async ({ id }) => {
+    const commandId = String(id)
+
+    if (!mongoose.Types.ObjectId.isValid(commandId)) {
+      console.log("The id is not a valid ObjectId");
+      return null;
     }
-  }
 
-  static async getByCommand({ command }) {
-    if (command) {
-      const commandByName = commands.filter(
-        (cmd) => cmd.command.toLowerCase() === command.toLowerCase()
-      );
-      return commandByName;
-    }
-  }
+    const result = await commandMongooseModel.findById(commandId);
 
-  static async createCommand({ input }) {
-    const newCommand = {
-      id: commands.length + 1,
-      ...input,
+    return result;
+  };
+
+  getByCommand = async ({ command }) => {
+    const result = await commandMongooseModel.find({ command})
+
+    return result;
+  };
+
+    createCommand = async ({ input }) => {
+      const command = new commandMongooseModel(input)
+
+      const result = await command.save()
+
+      return result;
     };
 
-    commands.push(newCommand);
+    updateCommand = async ({ id, input }) => {
+      
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        console.log("The id is not a valid ObjectId");
+        return null;
+      }
 
-    return newCommand;
-  }
+      const updatedCommand = await commandMongooseModel.updateOne({_id: id}, input)
 
-  static async updateCommand({ id, input }) {
-    const commandIndex = commands.findIndex((cmd) => cmd.id === id);
-    if (commandIndex !== -1) {
-      commands[commandIndex] = {
-        ...commands[commandIndex],
-        ...input,
-      };
-      return commands[commandIndex];
-    }
-  }
+      return updatedCommand
+      
+    };
 
-  static async delete({ id }) {
-    const commandById = commands.findIndex((cmd) => cmd.id === id);
-    if (commandById === -1) return false;
-    commands.splice(commandById, 1);
+    delete = async ({ id }) => {
 
-    return { message: `Command has been deleted successfully` };
-  }
+      const commandId = String(id)
+
+      if (!mongoose.Types.ObjectId.isValid(commandId)) {
+        console.log("The id is not a valid ObjectId");
+        return null;
+      }
+
+      const command = await commandMongooseModel.findByIdAndDelete(commandId)
+
+      return {message: `The command has been deleted:`, command}
+    };
 }

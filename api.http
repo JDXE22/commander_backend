@@ -3,10 +3,11 @@ GET http://localhost:3000/command
 
 ### Get Command by Command
 
-GET http://localhost:3000/command/command/%2Fhi2
+GET http://localhost:3000/command/command/%2Fhi1
 
 ### Get Command by ID 
-GET http://localhost:3000/command/1
+GET http://localhost:3000/command/67fe9cb7e071a32a40d2076e
+
 
 ### Create Command
 POST http://localhost:3000/command
@@ -17,4 +18,19 @@ Content-Type: application/json
     "command": "/hi2",
     "text": "Welcome to the bot"
 }
+
+### Update Command
+
+PATCH http://localhost:3000/command/command/67fe9cb7e071a32a40d2076e
+Content-Type: application/json
+
+{
+
+    "text": "Welcome to the chat"
+}
+
+### Delete Command
+
+DELETE http://localhost:3000/command/command/67fe9cb7e071a32a40d2076e
+
 
