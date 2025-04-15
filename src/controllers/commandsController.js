@@ -22,7 +22,7 @@ export class CommandController {
   };
 
   saveCommand = async (req, res) => {
-    const { body } = req;
+    const { body } = req.body;
     const commandData = await this.commandModel.createCommand({ input: body });
     res.json(commandData);
   };
