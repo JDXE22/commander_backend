@@ -78,10 +78,16 @@ export class CommandModel {
     };
 
     delete = async ({ id }) => {
-      const command = await commandMongooseModel.findById(id)
 
-     const result = await commandMongooseModel.delete(command)
+      const commandId = String(id)
 
-      return {message: `The command has been deleted`}
+      if (!mongoose.Types.ObjectId.isValid(commandId)) {
+        console.log("The id is not a valid ObjectId");
+        return null;
+      }
+
+      const command = await commandMongooseModel.findByIdAndDelete(commandId)
+
+      return {message: `The command has been deleted:`, command}
     };
 }
