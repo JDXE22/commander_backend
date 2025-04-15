@@ -3,7 +3,11 @@ import { commandSchema } from "../../schemas/mongo-schema/commandSchema.js";
 
 const url = process.env.DATABASE_URL;
 const clientOptions = {
-  serverApi: { version: "1", strict: true, deprecationErrors: true },
+  serverApi: {
+    version: "1",
+    strict: true,
+    deprecationErrors: true,
+  },
 };
 
 async function connect() {
@@ -18,36 +22,36 @@ async function connect() {
   }
 }
 
-const commandMongooseModel = mongoose.model("Command", commandSchema, "commands");
+const commandMongooseModel = mongoose.model(
+  "command",
+  commandSchema,
+  "commands"
+);
+
+connect().then(() => console.log("Connection established."));
 
 export class CommandModel {
   getAll = async () => {
-    await connect();
-
     const result = await commandMongooseModel.find({});
 
     return result;
   };
 
-  // getById = async ({ id }) => {
-  //   const db = await connect();
-  //   const objectId = ObjectId.createFromHexString(id);
-  //   console.log(objectId);
+  getById = async ({ id }) => {
+    console.log("Using id:", id); 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      console.log("The id is not a valid ObjectId");
+      return null;
+    }
+    const result = await commandMongooseModel.findById(id);
 
-  //   return db.findOne({ _id: objectId });
-  // };
+    return result;
+  };
 
   // getByCommand = async ({ command }) => {
-  //   const db = await connect()
-  //   if(command){
-  //     return db.find({
-  //       command: {
-  //         $match: command,
-  //         $options: "i"
-  //       }
-  //     }).toArray()
-  //   }
-  //   return db.find({}).toArray()
+  //   const result = await commandMongooseModel.find({ command})
+
+  //   return result;
   // };
 
   //   createCommand = ({ input }) => {
