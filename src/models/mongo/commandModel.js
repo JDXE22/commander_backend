@@ -50,22 +50,19 @@ export class CommandModel {
     return result;
   };
 
-  // getByCommand = async ({ command }) => {
-  //   const result = await commandMongooseModel.find({ command})
+  getByCommand = async ({ command }) => {
+    const result = await commandMongooseModel.find({ command})
 
-  //   return result;
-  // };
+    return result;
+  };
 
-  //   createCommand = ({ input }) => {
-  //     const newCommand = {
-  //       id: commands.length + 1,
-  //       ...input,
-  //     };
+    createCommand = async ({ input }) => {
+      const command = new commandMongooseModel(input)
 
-  //     commands.push(newCommand);
+      const result = await command.save()
 
-  //     return newCommand;
-  //   };
+      return result;
+    };
 
   //   updateCommand = ({ id, input }) => {
   //     const commandIndex = commands.findIndex((cmd) => cmd.id === id);
