@@ -19,3 +19,15 @@ Content-Type: application/json
     "text": "Welcome to the bot"
 }
 
+### Update Command
+
+PATCH http://localhost:3000/command/67fd65a137d19e2aca8af4e6
+Content-Type: application/json
+
+{
+    "name": "hi2",
+    "command": "/hi2",
+    "text": "Welcome to the chat"
+}
+
+

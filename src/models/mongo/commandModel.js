@@ -64,15 +64,20 @@ export class CommandModel {
       return result;
     };
 
-    updateCommand = ({ id, input }) => {
+    updateCommand = async ({ id, input }) => {
+      console.log(input);
+      
       if (!mongoose.Types.ObjectId.isValid(id)) {
         console.log("The id is not a valid ObjectId");
         return null;
       }
 
-      const updatedCommand = commandMongooseModel.updateOne({_id: id}, {input})
+      const updatedCommand = await commandMongooseModel.updateOne({_id: id}, {input})
+
+
 
       return updatedCommand
+      
     };
 
   //   delete = ({ id }) => {
