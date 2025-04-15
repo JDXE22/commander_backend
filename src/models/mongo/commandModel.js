@@ -1,25 +1,25 @@
-import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
+// import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
 
-const uri = process.env.MONGODB_URI
-const client = new MongoClient(uri, {
-    serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true
-    }
-})
+// const uri = process.env.MONGODB_URI
+// const client = new MongoClient(uri, {
+//     serverApi: {
+//         version: ServerApiVersion.v1,
+//         strict: true,
+//         deprecationErrors: true
+//     }
+// })
 
-async function connect(){
-    try {
-        await client.connect()
-        const database= client.db("database")
-        return database.collection("CMD")
-    } catch (error) {
-            console.error('Error connecting to the database')
-    console.error(error)
-    await client.close()
-    }
-}
+// async function connect(){
+//     try {
+//         await client.connect()
+//         const database= client.db("cmd_db")
+//         return database.collection("commands")
+//     } catch (error) {
+//             console.error('Error connecting to the database')
+//     console.error(error)
+//     await client.close()
+//     }
+// }
 export class CommandModel {
 
 
@@ -31,24 +31,26 @@ export class CommandModel {
     };
   
     getById = async ({ id }) => {
-      const db = await connect()     
-      const objectId = new ObjectId(id)
-      return db.findOne({_id: objectId})
+      const db = await connect()  
+      const objectId = ObjectId.createFromHexString(id)
+      console.log(objectId);
+      
+      return db.findOne({_id: objectId })
 
     };
   
-    getByCommand = async ({ command }) => {
-      const db = await connect()     
-      if(genre){
-        return db.find({
-          command: { 
-            $SelemMatch: command,
-            $options: "i"
-          }
-        }).toArray()
-      }
-      return db.find({}).toArray()
-    };
+    // getByCommand = async ({ command }) => {
+    //   const db = await connect()     
+    //   if(command){
+    //     return db.find({
+    //       command: { 
+    //         $match: command,
+    //         $options: "i"
+    //       }
+    //     }).toArray()
+    //   }
+    //   return db.find({}).toArray()
+    // };
   
     createCommand = ({ input }) => {
       const newCommand = {
