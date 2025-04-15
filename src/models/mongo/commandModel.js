@@ -64,16 +64,16 @@ export class CommandModel {
       return result;
     };
 
-  //   updateCommand = ({ id, input }) => {
-  //     const commandIndex = commands.findIndex((cmd) => cmd.id === id);
-  //     if (commandIndex !== -1) {
-  //       commands[commandIndex] = {
-  //         ...commands[commandIndex],
-  //         ...input,
-  //       };
-  //       return commands[commandIndex];
-  //     }
-  //   };
+    updateCommand = ({ id, input }) => {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        console.log("The id is not a valid ObjectId");
+        return null;
+      }
+
+      const updatedCommand = commandMongooseModel.updateOne({_id: id}, {input})
+
+      return updatedCommand
+    };
 
   //   delete = ({ id }) => {
   //     const commandById = commands.findIndex((cmd) => cmd.id === id);
