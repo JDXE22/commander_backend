@@ -39,4 +39,17 @@ export class CommandController {
 
     return res.json(commandUpdatedData);
   };
+
+  delete = async( req, res) => {
+    const {id} = req.params
+
+    const deletedCommand = await this.commandModel.delete( id)
+
+    if (deletedCommand === false) {
+      return res.status(404).json({ message: 'Movie not found' })
+    }
+
+    return res.json({ message: 'Movie deleted' })
+
+  }
 }
