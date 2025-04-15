@@ -38,12 +38,14 @@ export class CommandModel {
   };
 
   getById = async ({ id }) => {
-    console.log("Using id:", id); 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    const commandId = String(id)
+
+    if (!mongoose.Types.ObjectId.isValid(commandId)) {
       console.log("The id is not a valid ObjectId");
       return null;
     }
-    const result = await commandMongooseModel.findById(id);
+
+    const result = await commandMongooseModel.findById(commandId);
 
     return result;
   };
