@@ -73,17 +73,15 @@ export class CommandModel {
 
       const updatedCommand = await commandMongooseModel.updateOne({_id: id}, input)
 
-
-
       return updatedCommand
       
     };
 
-  //   delete = ({ id }) => {
-  //     const commandById = commands.findIndex((cmd) => cmd.id === id);
-  //     if (commandById === -1) return false;
-  //     commands.splice(commandById, 1);
+    delete = async ({ id }) => {
+      const command = await commandMongooseModel.findById(id)
 
-  //     return { message: `Command has been deleted successfully` };
-  //   };
+     const result = await commandMongooseModel.delete(command)
+
+      return {message: `The command has been deleted`}
+    };
 }
