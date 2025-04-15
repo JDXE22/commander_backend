@@ -9,30 +9,30 @@ export class CommandController {
     res.json(commands);
   };
 
-  getByCommand = (req, res) => {
+  getByCommand = async (req, res) => {
     const command = decodeURIComponent(req.params.command);
-    const commandData = this.commandModel.getByCommand({ command });
+    const commandData = await this.commandModel.getByCommand({ command });
     res.json(commandData);
   };
 
-  getById = (req, res) => {
+  getById = async (req, res) => {
     const { id } = req.params;
-    const commandData = this.commandModel.getById({ id });
+    const commandData = await this.commandModel.getById({ id });
     res.json(commandData);
   };
 
-  saveCommand = (req, res) => {
+  saveCommand = async (req, res) => {
     const { body } = req;
-    const commandData = this.commandModel.createCommand({ input: body });
+    const commandData = await this.commandModel.createCommand({ input: body });
     res.json(commandData);
   };
 
-  updateCommand = (req, res) => {
+  updateCommand = async (req, res) => {
     const { id } = req.params;
 
     const { body } = req.body;
 
-    const commandUpdatedData = this.commandModel.updateCommand({
+    const commandUpdatedData = await this.commandModel.updateCommand({
       id,
       input: body,
     });
