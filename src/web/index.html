@@ -13,5 +13,11 @@
 </body>
 <script>
     fetch("http://localhost:3000/command/%2Fhi1")
+    .then(res => res.json())
+    .then(commands => {
+        const commandOutput = commands.map(command => {
+            return `${commands}`
+        })
+    })
 </script>
 </html>
