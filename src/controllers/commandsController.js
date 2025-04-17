@@ -6,7 +6,6 @@ export class CommandController {
   getAll = async (req, res) => {
     try {
       const commands = await this.commandModel.getAll();
-
       res.json(commands);
     } catch (error) {
       if (error) {

@@ -21,7 +21,7 @@ Content-Type: application/json
 
 ### Update Command
 
-PATCH http://localhost:3000/command/command/67fe9cb7e071a32a40d2076e
+PATCH http://localhost:3000/command/67fe9cb7e071a32a40d2076e
 Content-Type: application/json
 
 {
@@ -31,6 +31,6 @@ Content-Type: application/json
 
 ### Delete Command
 
-DELETE http://localhost:3000/command/command/67fe9cb7e071a32a40d2076e
+DELETE http://localhost:3000/command/67fe9cb7e071a32a40d2076e
 
 
