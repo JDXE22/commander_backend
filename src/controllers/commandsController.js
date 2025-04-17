@@ -4,57 +4,49 @@ export class CommandController {
   }
 
   getAll = async (req, res) => {
-    try {
       const commands = await this.commandModel.getAll();
       res.json(commands);
-    } catch (error) {
-      if (error) {
-        return res.status(404).json({ message: `No commands were found` });
-      }
-    }
+
   };
 
   getByCommand = async (req, res) => {
-    try {
       const command = decodeURIComponent(req.params.command);
       const commandData = await this.commandModel.getByCommand({ command });
-      res.json(commandData);
-    } catch (error) {
-      if (error) {
-        return res.status(404).json({ message: `No command was found` });
+      if (!commandData) {
+        throw new Error(`No command was found`)
       }
-    }
+      res.json(commandData);
+
   };
 
   getById = async (req, res) => {
-    try {
       const { id } = req.params;
       const commandData = await this.commandModel.getById({ id });
-      res.json(commandData);
-    } catch (error) {
-      if (error) {
-        return res.status(404).json({ message: `No command was found using this ID` });
+      if (!commandData) {
+        throw new Error(`No command was found`)
       }
-    }
+      res.json(commandData);
+
   };
 
   saveCommand = async (req, res) => {
-    try {
       const body = req.body;
       const commandData = await this.commandModel.createCommand({ input: body });
-      res.json(commandData);
-    } catch (error) {
-      if (error) {
-        return res.status(422).json({message: `Your command could not be created, please try again`})
+      if (!commandData) {
+        throw new Error({message: `The entity could not be processed`})
       }
-    }
+      res.json(commandData);
+
   };
 
   updateCommand = async (req, res) => {
-    try {
       const { id } = req.params;
 
       const body = req.body;
+
+      if (!id && !body) {
+        throw new Error(`Neither the ID nor the body is being passed correctly`)
+      }
   
       const commandUpdatedData = await this.commandModel.updateCommand({
         id,
@@ -62,16 +54,15 @@ export class CommandController {
       });
   
       return res.json(commandUpdatedData);
-    } catch (error) {
-      if (error) {
-        return res.status(422).json({message: `Your command could not be updated, please try again`})
-      }
-    }
+
   };
 
   delete = async (req, res) => {
-    try {
       const id = req.params;
+
+      if (!id) {
+        throw new Error(`ID is not being passed correctly`)
+      }
 
       const deletedCommand = await this.commandModel.delete(id);
   
@@ -80,11 +71,7 @@ export class CommandController {
       }
   
       return res.json(deletedCommand);
-    } catch (error) {
-      if (error) {
-        return res.status(404).json({message: `The command could not be deleted, please try again`})
-      }
-    }
+
 
   };
 }
