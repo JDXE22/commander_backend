@@ -50,9 +50,9 @@ export class CommandModel {
   };
 
   getByCommand = async ({ command }) => {
-    const result = await commandMongooseModel.find({command})
-
-    return result;
+    const { text } = await commandMongooseModel.findOne({ command }) || {};
+    return text;                    
+    
   };
 
     createCommand = async ({ input }) => {
