@@ -37,7 +37,7 @@ export class CommandModel {
   };
 
   getById = async ({ id }) => {
-    const commandId = String(id)
+    const commandId = id    
 
     if (!mongoose.Types.ObjectId.isValid(commandId)) {
       console.log("The id is not a valid ObjectId");

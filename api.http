@@ -6,7 +6,7 @@ GET http://localhost:3000/command
 GET http://localhost:3000/command/%2Fhi1
 
 ### Get Command by ID 
-GET http://localhost:3000/command/67fd65a137d19e2aca8af4e6
+GET http://localhost:3000/command/6802a6659fdb9ae382d7e029
 
 
 ### Create Command
@@ -21,12 +21,12 @@ Content-Type: application/json
 
 ### Update Command
 
-PATCH http://localhost:3000/command/67fe9cb7e071a32a40d2076e
+PATCH http://localhost:3000/command/6802a6659fdb9ae382d7e029
 Content-Type: application/json
 
 {
 
-    "text": "Welcome to the chat"
+    "text": "Welcome to the guetto bitch"
 }
 
 ### Delete Command
