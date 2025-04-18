@@ -14,7 +14,6 @@ async function connect() {
   try {
     await mongoose.connect(url, clientOptions);
     await mongoose.connection.db.admin().command({ ping: 1 });
-    console.log("Connected to MongoDB");
   } catch (error) {
     console.error("Error connecting to the database");
     console.error(error);
@@ -51,9 +50,9 @@ export class CommandModel {
   };
 
   getByCommand = async ({ command }) => {
-    const result = await commandMongooseModel.find({ command})
-
-    return result;
+    const { text } = await commandMongooseModel.findOne({ command }) || {};
+    return text;                    
+    
   };
 
     createCommand = async ({ input }) => {
@@ -88,6 +87,6 @@ export class CommandModel {
 
       const command = await commandMongooseModel.findByIdAndDelete(commandId)
 
-      return {message: `The command has been deleted:`, command}
+      return {message: `The command has been deleted:`}
     };
 }
