@@ -20,8 +20,9 @@ export class CommandController {
   };
 
   getById = async (req, res) => {
-    const { id } = req.params;
+    const {id} = req.params;
     const commandData = await this.commandModel.getById({ id });
+    
     if (!commandData) {
       throw new Error(`No command was found`);
     }
