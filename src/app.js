@@ -14,7 +14,7 @@ export const createApp = ({ commandModel }) => {
 
   app.use(validationErrors);
 
-  app.use(corsMiddleware())
+  app.use(corsMiddleware)
 
   app.use("/command", commandRouter({ commandModel }));
 
