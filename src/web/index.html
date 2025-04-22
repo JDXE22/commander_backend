@@ -8,10 +8,42 @@
 <body>
     <h1>Commander Console</h1>
     <main>
-        <input type="text" id="consoleInput" placeholder="Type the command and press Enter">
+        <input type="text" id="consoleInput" placeholder="Type the /hi1 and press Enter">
+        <div id="responseArea"></div>
     </main>
 </body>
 <script>
+    const inputBox = document.getElementById("consoleInput")
+    const responseArea = document.getElementById("responseArea")
+
+    inputBox.addEventListener("keydown", async (event) => {
+        if (event.key === "Enter"){
+            const userCommand = event.target.value.trim()
+            if (!userCommand) return
+
+            responseArea.textContent = "Thinking..."
+
+            try {
+                const res = await fetch(`http://localhost:3000/command/${encodeURIComponent(userCommand)}`)
+                console.log(res);
+                
+
+                if (!res.ok) {
+                    responseArea.textContent = "Command not found"
+                    return
+                }
+
+                const {text } = await res.json()
+
+                responseArea.textContent = text
+            } catch (error) {
+                responseArea.textContent = "Oops! Something went wrong"
+                console.error(error)
+            }
+                
+            
+        }
+    })
 
 </script>
 </html>
