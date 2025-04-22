@@ -1,49 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Commander terminal</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Commander Console</h1>
     <main>
-        <input type="text" id="consoleInput" placeholder="Type the /hi1 and press Enter">
-        <div id="responseArea"></div>
+      <input
+        type="text"
+        id="consoleInput"
+        placeholder="Type the /hi1 and press Enter"
+      />
+      <div id="responseArea"></div>
     </main>
-</body>
-<script>
-    const inputBox = document.getElementById("consoleInput")
-    const responseArea = document.getElementById("responseArea")
+  </body>
+  <script>
+    const inputBox = document.getElementById("consoleInput");
+    const responseArea = document.getElementById("responseArea");
 
     inputBox.addEventListener("keydown", async (event) => {
-        if (event.key === "Enter"){
-            const userCommand = event.target.value.trim()
-            if (!userCommand) return
+      if (event.key === "Enter") {
+        const userCommand = event.target.value.trim();
+        if (!userCommand) return;
 
-            responseArea.textContent = "Thinking..."
+        responseArea.textContent = "Thinking...";
 
-            try {
-                const res = await fetch(`http://localhost:3000/command/${encodeURIComponent(userCommand)}`)
-                console.log(res);
-                
+        try {
+          const res = await fetch(
+            `http://localhost:3000/command/cmd/${encodeURIComponent(
+              userCommand
+            )}`
+          );
 
-                if (!res.ok) {
-                    responseArea.textContent = "Command not found"
-                    return
-                }
+          if (!res.ok) {
+            responseArea.textContent = "Command not found";
+            return;
+          }
+          const { text } = await res.json();
 
-                const {text } = await res.json()
-
-                responseArea.textContent = text
-            } catch (error) {
-                responseArea.textContent = "Oops! Something went wrong"
-                console.error(error)
-            }
-                
-            
+          responseArea.textContent = text;
+        } catch (error) {
+          responseArea.textContent = "Oops! Something went wrong";
+          console.error(error);
         }
-    })
-
-</script>
+      }
+    });
+  </script>
 </html>

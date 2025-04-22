@@ -9,14 +9,21 @@ export class CommandController {
   };
 
   getByCommand = async (req, res) => {
-    const command = decodeURIComponent(req.params.command);
-    const commandData = await this.commandModel.getByCommand({ command });
-    
-    if (!commandData) {
-      throw new Error(`No command was found`);
+    try {
+      const command = decodeURIComponent(req.params.command);
+      const text = await this.commandModel.getByCommand({ command: command });
+      
+      if (!text) {
+        throw new Error(`No command was found`);
+      }
+  
+     return res.json(text);
+    } catch (error) {
+      console.error('❌ Error in getByCommand:', err);
+      return res.status(500).json({ message: 'Server error' });
     }
 
-    res.json(commandData);
+
   };
 
   getById = async (req, res) => {
