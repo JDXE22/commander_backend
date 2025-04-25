@@ -4,7 +4,7 @@ const ACCEPTED_ORIGINS = [
   "http://localhost:5482",
   "http://localhost:8080",
   "http://localhost:1234",
-  "https://commander.com",
+  "https://commander-8xmm.onrender.com/",
 ];
 
 export const corsMiddleware = ({ acceptedOrigins = ACCEPTED_ORIGINS } = {}) =>
