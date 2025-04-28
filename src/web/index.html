@@ -4,11 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Commander terminal</title>
-    <link rel="stylesheet" href="./style/style.css">
+    <link rel="stylesheet" href="./style/style.css" />
   </head>
   <body>
     <main>
       <h1>Commander Console</h1>
+      <div id="commandArea">
+        <nav id="navBar">
+          <ul>
+            <li>
+              <a href="">Update Command</a>
+            </li>
+            <li>
+              <a href="">Delete Command</a>
+            </li>
+            <li>
+              <a href="">Filter Command</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
       <input
         type="text"
         id="consoleInput"
@@ -18,5 +33,5 @@
       <button id="copyButton">Copy Text</button>
     </main>
   </body>
-  <script type="module" src="./index.js"> </script>
+  <script type="module" src="./index.js"></script>
 </html>
