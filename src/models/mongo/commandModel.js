@@ -37,7 +37,7 @@ export class CommandModel {
   };
 
   getById = async ({ id }) => {
-    const commandId = id    
+    const commandId = id;
 
     if (!mongoose.Types.ObjectId.isValid(commandId)) {
       console.log("The id is not a valid ObjectId");
@@ -50,43 +50,52 @@ export class CommandModel {
   };
 
   getByCommand = async ({ command }) => {
-    const commandFiltered = await commandMongooseModel.findOne({ command }) || {};
-    return commandFiltered;                    
-    
+    const commandFiltered =
+      (await commandMongooseModel.findOne({ command })) || {};
+    return commandFiltered;
   };
 
-    createCommand = async ({ input }) => {
-      const command = new commandMongooseModel(input)
+  createCommand = async ({ input }) => {
+    const command = new commandMongooseModel(input);
 
-      const result = await command.save()
+    const commandExists = await commandMongooseModel.findOne({
+      command: input.command,
+    });
+    
 
-      return result;
-    };
+    if (commandExists) {
+      return {message: "Command already exists"};
+    }
 
-    updateCommand = async ({ id, input }) => {
-      
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        console.log("The id is not a valid ObjectId");
-        return null;
-      }
+    const result = await command.save();
 
-      const updatedCommand = await commandMongooseModel.updateOne({_id: id}, input)
+    return result;
+  };
 
-      return updatedCommand
-      
-    };
+  updateCommand = async ({ id, input }) => {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      console.log("The id is not a valid ObjectId");
+      return null;
+    }
 
-    delete = async ({ id }) => {
+    const updatedCommand = await commandMongooseModel.updateOne(
+      { _id: id },
+      input
+    );
 
-      const commandId = String(id)
+    return updatedCommand;
+  };
 
-      if (!mongoose.Types.ObjectId.isValid(commandId)) {
-        console.log("The id is not a valid ObjectId");
-        return null;
-      }
+  delete = async ({ id }) => {
+    const commandId = String(id);
 
-      const command = await commandMongooseModel.findByIdAndDelete(commandId)
+    if (!mongoose.Types.ObjectId.isValid(commandId)) {
+      console.log("The id is not a valid ObjectId");
+      return null;
+    }
 
-      return {message: `The command has been deleted:`}
-    };
+    const command = await commandMongooseModel.findByIdAndDelete(commandId);
+
+    return { message: `The command has been deleted:` };
+  };
 }

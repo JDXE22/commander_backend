@@ -14,9 +14,9 @@ POST http://localhost:3000/command
 Content-Type: application/json
 
 {
-    "name": "",
-    "command": "",
-    "text": "" 
+    "name": "hi1",
+    "command": "/hi1",
+    "text": "Welcome to the chat" 
 }
 
 
