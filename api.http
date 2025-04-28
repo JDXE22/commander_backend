@@ -14,9 +14,9 @@ POST http://localhost:3000/command
 Content-Type: application/json
 
 {
-    "name": "ezra1",
-    "command": "/ezra1",
-    "text": "Hi Ezra, thanks for reaching out to F1RST Delivery Support!  Please note that we are only able to assign fleets, not individual drivers. In this case, I can confirm that the DSP is actively working on assigning a driver to this/these order(s), as an alternative we can duplicate the order to assign it to a different fleet and exhaust all the options. We truly appreciate your patience and understanding as we ensure the best possible service." 
+    "name": "",
+    "command": "",
+    "text": "" 
 }
 
 
