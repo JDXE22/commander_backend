@@ -1,0 +1,38 @@
+### Get All Commands
+GET http://localhost:3000/command
+
+### Get Command by Command
+
+GET http://localhost:3000/command/cmd/%2Fhi1
+
+### Get Command by ID 
+GET http://localhost:3000/command/681e68820ce3d72ad1ab36ed
+
+
+### Create Command
+POST http://localhost:3000/command
+Content-Type: application/json
+
+{
+    "name": "edwin1",
+    "command": "/edwin1",
+    "text": " Hi Edwin. Thanks for contacting with F1RST Delivery Support. I can see the order was duplicated and [DSP] is working to assign a driver ASAP. I'll keep you posted once I have an update " 
+}
+
+
+
+### Update Command
+
+PATCH http://localhost:3000/command/681e6a990ce3d72ad1ab36f8
+Content-Type: application/json
+
+{
+
+   "name": "driver1"
+}
+
+### Delete Command
+
+DELETE http://localhost:3000/command/67fe9cb7e071a32a40d2076e
+
+
