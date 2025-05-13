@@ -1,17 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Commander terminal</title>
-</head>
-<body>
-    <h1>Commander Console</h1>
+    <link rel="stylesheet" href="./style/style.css" />
+  </head>
+  <body>
     <main>
-        <input type="text" id="consoleInput" placeholder="Type the command and press Enter">
+      <h1>Commander Console</h1>
+      <div id="commandArea">
+        <nav id="navBar">
+          <ul>
+            <li>
+              <a href="">Update Command</a>
+            </li>
+            <li>
+              <a href="">Delete Command</a>
+            </li>
+            <li>
+              <a href="">Filter Command</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <input
+        type="text"
+        id="consoleInput"
+        placeholder="Type the /hi1 and press Enter"
+      />
+      <div id="responseArea"></div>
+      <button id="copyButton">Copy Text</button>
     </main>
-</body>
-<script>
-
-</script>
+  </body>
+  <script type="module" src="./index.js"></script>
 </html>

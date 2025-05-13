@@ -3,7 +3,7 @@ GET http://localhost:3000/command
 
 ### Get Command by Command
 
-GET http://localhost:3000/command/%2Fhi1
+GET http://localhost:3000/command/cmd/%2Fhi1
 
 ### Get Command by ID 
 GET http://localhost:3000/command/6802a6659fdb9ae382d7e029
@@ -14,10 +14,12 @@ POST http://localhost:3000/command
 Content-Type: application/json
 
 {
-    "name": "hi2",
-    "command": "/hi2",
-    "text": "Welcome to the bot"
+    "name": "hi1",
+    "command": "/hi1",
+    "text": "Welcome to the chat" 
 }
+
+
 
 ### Update Command
 

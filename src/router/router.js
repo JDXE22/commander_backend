@@ -6,9 +6,9 @@ export const commandRouter = ({commandModel})=> {
 
     const commandController = new CommandController({commandModel})
     
-    router.get("/:id", commandController.getById)
+    router.get("/cmd/:command", commandController.getByCommand)
     
-    router.get("/:command", commandController.getByCommand)
+    router.get("/:id", commandController.getById)
 
     router.post("/", commandController.saveCommand)
 

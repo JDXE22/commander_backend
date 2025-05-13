@@ -1,0 +1,25 @@
+body {
+    background-color: #121212;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+h1 {
+    color: #ffffff;
+    font-size: medium;
+}
+
+input {
+    color: gray
+}
+
+#responseArea{
+    color: #ffffff;
+    font-size: medium;
+}
