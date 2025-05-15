@@ -5,16 +5,18 @@ export const commandRouter = ({commandModel})=> {
     const router = Router();
 
     const commandController = new CommandController({commandModel})
-    
+
+    router.get("/cmd/", commandController.getAll)    
+
     router.get("/cmd/:command", commandController.getByCommand)
     
-    router.get("/:id", commandController.getById)
+    router.get("/cmd/:id", commandController.getById)
 
     router.post("/", commandController.saveCommand)
 
-    router.patch("/:id", commandController.updateCommand)
+    router.patch("/cmd/:id", commandController.updateCommand)
 
-    router.delete("/:id", commandController.delete)
+    router.delete("/cmd/:id", commandController.delete)
 
     return router;
 }

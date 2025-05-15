@@ -30,9 +30,15 @@ const commandMongooseModel = mongoose.model(
 connect().then(() => console.log("Connection established."));
 
 export class CommandModel {
-  getAll = async () => {
-    const result = await commandMongooseModel.find({});
+  getAll = async ({query}) => {
 
+    const { limit, page } = query;
+
+    
+    const currentlimit = limit ? parseInt(limit) : 5;
+    const currentpage = page ? parseInt(page) : 1;
+    const skip = (currentpage - 1) * limit;
+    const result = await commandMongooseModel.find().skip(skip).limit(currentlimit);
     return result;
   };
 
@@ -61,10 +67,9 @@ export class CommandModel {
     const commandExists = await commandMongooseModel.findOne({
       command: input.command,
     });
-    
 
     if (commandExists) {
-      return {message: "Command already exists"};
+      return { message: "Command already exists" };
     }
 
     const result = await command.save();
