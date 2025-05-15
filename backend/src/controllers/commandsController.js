@@ -1,18 +1,18 @@
+import mongoose from "mongoose";
+
 export class CommandController {
   constructor({ commandModel }) {
     this.commandModel = commandModel;
   }
 
-  getAll = async (req, res) => {
+  getAll = async (req, res) => {    
     try {
-      const commands = await this.commandModel.getAll(req.query);
+      const commands = await this.commandModel.getAll({query: req.query});
       res.json(commands);
     } catch (error) {
       if (error instanceof mongoose.Error) {
-        console.error("❌ Error in getAll:", error);
         return res.status(500).json({ message: "Database error" });
       }
-
       return res.status(404).json({ message: "Commands not found" });
     }
   };
@@ -28,7 +28,7 @@ export class CommandController {
 
       return res.json(text);
     } catch (error) {
-      console.error("❌ Error in getByCommand:", err);
+      console.error("❌ Error in getByCommand:", error);
       return res.status(500).json({ message: "Server error" });
     }
   };
