@@ -1,5 +1,5 @@
 ### Get All Commands
-GET http://localhost:3000/command
+GET http://localhost:3000/commands?page=1&limit=5
 
 ### Get Command by Command
 

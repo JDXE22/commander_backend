@@ -30,8 +30,11 @@ const commandMongooseModel = mongoose.model(
 connect().then(() => console.log("Connection established."));
 
 export class CommandModel {
-  getAll = async () => {
-    const result = await commandMongooseModel.find({skip: 10, limit: 5});
+  getAll = async (query) => {
+    const limit = query.limit ? parseInt(query.limit) : 5
+    const page = query.page ? parseInt(query.skip) : 0
+    const skip =(page -1) * limit
+    const result = await commandMongooseModel.find().skip(skip).limit(limit);
 
     const {text, name, command} = result
 
