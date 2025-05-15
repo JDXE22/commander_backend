@@ -4,32 +4,39 @@ export class CommandController {
   }
 
   getAll = async (req, res) => {
-    const commands = await this.commandModel.getAll();
-    res.json(commands);
+    try {
+      const commands = await this.commandModel.getAll(req.query);
+      res.json(commands);
+    } catch (error) {
+      if (error instanceof mongoose.Error) {
+        console.error("❌ Error in getAll:", error);
+        return res.status(500).json({ message: "Database error" });
+      }
+
+      return res.status(404).json({ message: "Commands not found" });
+    }
   };
 
   getByCommand = async (req, res) => {
     try {
       const command = decodeURIComponent(req.params.command);
       const text = await this.commandModel.getByCommand({ command: command });
-      
+
       if (!text) {
         throw new Error(`No command was found`);
       }
-  
-     return res.json(text);
+
+      return res.json(text);
     } catch (error) {
-      console.error('❌ Error in getByCommand:', err);
-      return res.status(500).json({ message: 'Server error' });
+      console.error("❌ Error in getByCommand:", err);
+      return res.status(500).json({ message: "Server error" });
     }
-
-
   };
 
   getById = async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     const commandData = await this.commandModel.getById({ id });
-    
+
     if (!commandData) {
       throw new Error(`No command was found`);
     }
