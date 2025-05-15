@@ -31,9 +31,11 @@ connect().then(() => console.log("Connection established."));
 
 export class CommandModel {
   getAll = async () => {
-    const result = await commandMongooseModel.find({});
+    const result = await commandMongooseModel.find({skip: 10, limit: 5});
 
-    return result;
+    const {text, name, command} = result
+
+    return {command: command, name: name, text: text};
   };
 
   getById = async ({ id }) => {

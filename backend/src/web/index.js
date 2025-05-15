@@ -35,14 +35,12 @@ async function copyToClipboard() {
   navigator.clipboard
     .writeText(responseArea.textContent)
     .then(() => {
-      console.log("Text copied to clipboard");
       copyButton.textContent = "Copied!";
       setTimeout(() => {
         copyButton.textContent = "Copy Text";
       }, 2000);
     })
     .catch((err) => {
-      console.error("Error copying text", err);
       copyButton.textContent = "Error!";
     });
 }
