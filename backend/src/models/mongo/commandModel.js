@@ -39,7 +39,14 @@ export class CommandModel {
     const currentpage = page ? parseInt(page) : 1;
     const skip = (currentpage - 1) * currentlimit;
     const result = await commandMongooseModel.find().skip(skip).limit(currentlimit);
-    return result;
+    const total = await commandMongooseModel.countDocuments();
+    const totalPages = Math.ceil(total / currentlimit);
+
+
+    return {
+      commands: result,
+      totalPages: totalPages,
+    }
   };
 
   getById = async ({ id }) => {
