@@ -12,7 +12,7 @@ export const commandRouter = ({commandModel})=> {
     
     router.get("/cmd/:id", commandController.getById)
 
-    router.post("/", commandController.saveCommand)
+    router.post("/cmd/", commandController.saveCommand)
 
     router.patch("/cmd/:id", commandController.updateCommand)
 
