@@ -6,7 +6,7 @@ const ACCEPTED_ORIGINS = [
   "http://localhost:1234",
   "https://commander-8xmm.onrender.com/",
   "http://localhost:5173",
-  "https://commanderfront.vercel.app/",
+  "https://commanderfront.vercel.app",
 ];
 
 export const corsMiddleware = ({ acceptedOrigins = ACCEPTED_ORIGINS } = {}) =>
