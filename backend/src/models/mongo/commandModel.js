@@ -26,9 +26,7 @@ const commandMongooseModel = mongoose.model(
   commandSchema,
   "commands"
 );
-
-connect().then(() => console.log("Connection established."));
-
+connect();
 export class CommandModel {
   getAll = async ({query}) => {
 
@@ -44,11 +42,6 @@ export class CommandModel {
 
   getById = async ({ id }) => {
     const commandId = id;
-
-    if (!mongoose.Types.ObjectId.isValid(commandId)) {
-      console.log("The id is not a valid ObjectId");
-      return null;
-    }
 
     const result = await commandMongooseModel.findById(commandId);
 
@@ -78,10 +71,6 @@ export class CommandModel {
   };
 
   updateCommand = async ({ id, input }) => {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      console.log("The id is not a valid ObjectId");
-      return null;
-    }
 
     const updatedCommand = await commandMongooseModel.updateOne(
       { _id: id },
@@ -93,11 +82,6 @@ export class CommandModel {
 
   delete = async ({ id }) => {
     const commandId = String(id);
-
-    if (!mongoose.Types.ObjectId.isValid(commandId)) {
-      console.log("The id is not a valid ObjectId");
-      return null;
-    }
 
     const command = await commandMongooseModel.findByIdAndDelete(commandId);
 
