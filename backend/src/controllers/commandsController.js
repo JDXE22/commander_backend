@@ -5,19 +5,16 @@ export class CommandController {
     this.commandModel = commandModel;
   }
 
-  getAll = async (req, res) => {    
+  getAll = async (req, res, next) => {
     try {
-      const commands = await this.commandModel.getAll({query: req.query});
+      const commands = await this.commandModel.getAll({ query: req.query });
       res.json(commands);
     } catch (error) {
-      if (error instanceof mongoose.Error) {
-        return res.status(500).json({ message: "Database error" });
-      }
-      return res.status(404).json({ message: "Commands not found" });
+      next(error);
     }
   };
 
-  getByCommand = async (req, res) => {
+  getByCommand = async (req, res, next) => {
     try {
       const command = decodeURIComponent(req.params.command);
       const text = await this.commandModel.getByCommand({ command: command });
@@ -28,19 +25,22 @@ export class CommandController {
 
       return res.json(text);
     } catch (error) {
-      console.error("❌ Error in getByCommand:", error);
-      return res.status(500).json({ message: "Server error" });
+      next(error);
     }
   };
 
-  getById = async (req, res) => {
-    const { id } = req.params;
-    const commandData = await this.commandModel.getById({ id });
+  getById = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const commandData = await this.commandModel.getById({ id });
 
-    if (!commandData) {
-      throw new Error(`No command was found`);
+      if (!commandData) {
+        throw new Error(`No command was found`);
+      }
+      res.json(commandData);
+    } catch (error) {
+      next(error);
     }
-    res.json(commandData);
   };
 
   saveCommand = async (req, res) => {
@@ -52,36 +52,46 @@ export class CommandController {
     res.json(commandData);
   };
 
-  updateCommand = async (req, res) => {
-    const { id } = req.params;
+  updateCommand = async (req, res, next) => {
+    try {
+      const { id } = req.params;
 
-    const body = req.body;
+      const body = req.body;
 
-    if (!id && !body) {
-      throw new Error(`Neither the ID nor the body is being passed correctly`);
+      if (!id && !body) {
+        throw new Error(
+          `Neither the ID nor the body is being passed correctly`
+        );
+      }
+
+      const commandUpdatedData = await this.commandModel.updateCommand({
+        id,
+        input: body,
+      });
+
+      return res.json(commandUpdatedData);
+    } catch (error) {
+      next(error);
     }
-
-    const commandUpdatedData = await this.commandModel.updateCommand({
-      id,
-      input: body,
-    });
-
-    return res.json(commandUpdatedData);
   };
 
-  delete = async (req, res) => {
-    const id = req.params;
+  delete = async (req, res, next) => {
+    try {
+      const id = req.params;
 
-    if (!id) {
-      throw new Error(`ID is not being passed correctly`);
+      if (!id) {
+        throw new Error(`ID is not being passed correctly`);
+      }
+
+      const deletedCommand = await this.commandModel.delete(id);
+
+      if (deletedCommand === false) {
+        return res.status(404).json({ message: "Command not found" });
+      }
+
+      return res.json(deletedCommand);
+    } catch (error) {
+      next(error);
     }
-
-    const deletedCommand = await this.commandModel.delete(id);
-
-    if (deletedCommand === false) {
-      return res.status(404).json({ message: "Command not found" });
-    }
-
-    return res.json(deletedCommand);
   };
 }
