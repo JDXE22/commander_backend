@@ -14,9 +14,9 @@ POST http://localhost:3000/command
 Content-Type: application/json
 
 {
-    "name": "edwin1",
-    "command": "/edwin1",
-    "text": " Hi Edwin. Thanks for contacting with F1RST Delivery Support. I can see the order was duplicated and [DSP] is working to assign a driver ASAP. I'll keep you posted once I have an update " 
+    "name": "",
+    "command": "",
+    "text": "" 
 }
 
 

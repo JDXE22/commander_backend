@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { commandSchema } from "../../schemas/mongo-schema/commandSchema.js";
+import { URL } from "../../config/config.js";
 
-const url = process.env.DATABASE_URL;
 const clientOptions = {
   serverApi: {
     version: "1",
@@ -12,7 +12,7 @@ const clientOptions = {
 
 async function connect() {
   try {
-    await mongoose.connect(url, clientOptions);
+    await mongoose.connect(URL, clientOptions);
     await mongoose.connection.db.admin().command({ ping: 1 });
   } catch (error) {
     console.error("Error connecting to the database");
@@ -26,9 +26,7 @@ const commandMongooseModel = mongoose.model(
   commandSchema,
   "commands"
 );
-
-connect().then(() => console.log("Connection established."));
-
+connect();
 export class CommandModel {
   getAll = async ({query}) => {
 
@@ -51,11 +49,6 @@ export class CommandModel {
 
   getById = async ({ id }) => {
     const commandId = id;
-
-    if (!mongoose.Types.ObjectId.isValid(commandId)) {
-      console.log("The id is not a valid ObjectId");
-      return null;
-    }
 
     const result = await commandMongooseModel.findById(commandId);
 
@@ -85,10 +78,6 @@ export class CommandModel {
   };
 
   updateCommand = async ({ id, input }) => {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      console.log("The id is not a valid ObjectId");
-      return null;
-    }
 
     const updatedCommand = await commandMongooseModel.updateOne(
       { _id: id },
@@ -100,11 +89,6 @@ export class CommandModel {
 
   delete = async ({ id }) => {
     const commandId = String(id);
-
-    if (!mongoose.Types.ObjectId.isValid(commandId)) {
-      console.log("The id is not a valid ObjectId");
-      return null;
-    }
 
     const command = await commandMongooseModel.findByIdAndDelete(commandId);
 
