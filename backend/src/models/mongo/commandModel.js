@@ -37,7 +37,7 @@ export class CommandModel {
     
     const currentlimit = limit ? parseInt(limit) : 5;
     const currentpage = page ? parseInt(page) : 1;
-    const skip = (currentpage - 1) * limit;
+    const skip = (currentpage - 1) * currentlimit;
     const result = await commandMongooseModel.find().skip(skip).limit(currentlimit);
     return result;
   };
