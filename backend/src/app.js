@@ -3,9 +3,6 @@ import "dotenv/config";
 import { commandRouter } from "./router/router.js";
 import { errorHandler } from "./utils/errors.js";
 import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
 import { PORT } from "./config/config.js";
 
 export const createApp = ({ commandModel }) => {
