@@ -1,7 +1,7 @@
 import express from "express";
 import "dotenv/config";
 import { commandRouter } from "./router/router.js";
-import { validationErrors}  from "./utils/errors.js";
+import { errorHandler}  from "./utils/errors.js";
 import { corsMiddleware } from "./utils/middlewares/cors.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -22,7 +22,7 @@ export const createApp = ({ commandModel }) => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
-  app.use(validationErrors);
+  app.use(errorHandler);
 
   app.use(corsMiddleware())
 
