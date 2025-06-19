@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { commandSchema } from "../../schemas/mongo-schema/commandSchema.js";
+import { URL } from "../../config/config.js";
 
-const url = process.env.DATABASE_URL;
 const clientOptions = {
   serverApi: {
     version: "1",
@@ -12,7 +12,7 @@ const clientOptions = {
 
 async function connect() {
   try {
-    await mongoose.connect(url, clientOptions);
+    await mongoose.connect(URL, clientOptions);
     await mongoose.connection.db.admin().command({ ping: 1 });
   } catch (error) {
     console.error("Error connecting to the database");

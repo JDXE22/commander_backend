@@ -6,21 +6,14 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { PORT } from "./config/config.js";
 
 export const createApp = ({ commandModel }) => {
   console.log("🌱 createApp running");
-  const __filename = fileURLToPath(import.meta.url);
-
-  const __dirname = dirname(__filename);
 
   const app = express();
 
   app.use(cors());
-
-  app.use(express.static(path.join(__dirname, "web")));
-
-  const PORT = process.env.PORT || 1234;
-
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
