@@ -1,5 +1,3 @@
-
-
 # Commander Backend
 
 Commander Backend is a lightweight, command-driven snippet generator built with Node.js, Express, and MongoDB. It lets you map specific command inputs (like `/hi1`) to predefined text responses, making it ideal for support teams, automation, or rapid response scenarios.
