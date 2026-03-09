@@ -18,7 +18,7 @@ export const createApp = ({ commandModel }) => {
 
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-  app.use("/command", commandRouter({ commandModel }));
+  app.use("/api/commands", commandRouter({ commandModel }));
 
   app.use(errorHandler);
 

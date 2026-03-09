@@ -14,7 +14,7 @@ async function textAreaListener(event) {
 
     try {
       const res = await fetch(
-        `/command/cmd/${encodeURIComponent(userCommand)}`
+        `/api/commands?trigger=${encodeURIComponent(userCommand)}`
       );
 
       if (!res.ok) {
