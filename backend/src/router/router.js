@@ -8,72 +8,29 @@ export const commandRouter = ({ commandModel }) => {
 
   /**
    * @openapi
-   * /command/cmd:
+   * /api/commands:
    *   get:
    *     summary: Get all commands
-   *     description: Retrieve a paginated list of all available commands.
-   *     tags:
-   *       - Commands
-   *     responses:
-   *       200:
-   *         description: A paginated list of commands.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 commands:
-   *                   type: array
-   *                   items:
-   *                     $ref: "#/components/schemas/Command"
-   *                 totalPages:
-   *                   type: integer
-   *                   example: 3
-   *       400:
-   *         description: Bad request.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   *       500:
-   *         description: Internal server error.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   */
-  router.get('/cmd/', commandController.getAll);
-
-  /**
-   * @openapi
-   * /command/cmd/{command}:
-   *   get:
-   *     summary: Get command by trigger
-   *     description: Retrieve a single command by its trigger string (e.g. `/hi1`).
+   *     description: Retrieve a list of all available commands. Can filter by trigger using ?trigger=.
    *     tags:
    *       - Commands
    *     parameters:
-   *       - in: path
-   *         name: command
-   *         required: true
+   *       - in: query
+   *         name: trigger
    *         schema:
    *           type: string
-   *         description: Encoded command trigger. Use URL encoding for `/`.
+   *         description: Filter commands by trigger string.
    *     responses:
    *       200:
-   *         description: Command found.
+   *         description: A list of commands.
    *         content:
    *           application/json:
    *             schema:
-   *               $ref: "#/components/schemas/Command"
+   *               type: array
+   *               items:
+   *                 $ref: "#/components/schemas/Command"
    *       400:
    *         description: Bad request.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   *       404:
-   *         description: Command not found.
    *         content:
    *           application/json:
    *             schema:
@@ -85,11 +42,11 @@ export const commandRouter = ({ commandModel }) => {
    *             schema:
    *               $ref: "#/components/schemas/ErrorResponse"
    */
-  router.get('/cmd/:command', commandController.getByCommand);
+  router.get('/', commandController.getAll);
 
   /**
    * @openapi
-   * /command/cmd/{id}:
+   * /api/commands/{id}:
    *   get:
    *     summary: Get command by ID
    *     description: Retrieve a single command using its unique identifier.
@@ -128,11 +85,11 @@ export const commandRouter = ({ commandModel }) => {
    *             schema:
    *               $ref: "#/components/schemas/ErrorResponse"
    */
-  router.get('/cmd/:id', commandController.getById);
+  router.get('/:id', commandController.getById);
 
   /**
    * @openapi
-   * /command/cmd:
+   * /api/commands:
    *   post:
    *     summary: Create a new command
    *     description: Create a new command that maps a trigger to a text response.
@@ -170,11 +127,11 @@ export const commandRouter = ({ commandModel }) => {
    *             schema:
    *               $ref: "#/components/schemas/ErrorResponse"
    */
-  router.post('/cmd/', commandController.saveCommand);
+  router.post('/', commandController.create);
 
   /**
    * @openapi
-   * /command/cmd/{id}:
+   * /api/commands/{id}:
    *   patch:
    *     summary: Update an existing command
    *     description: Update one or more fields of an existing command.
@@ -219,11 +176,11 @@ export const commandRouter = ({ commandModel }) => {
    *             schema:
    *               $ref: "#/components/schemas/ErrorResponse"
    */
-  router.patch('/cmd/:id', commandController.updateCommand);
+  router.patch('/:id', commandController.update);
 
   /**
    * @openapi
-   * /command/cmd/{id}:
+   * /api/commands/{id}:
    *   delete:
    *     summary: Delete a command
    *     description: Delete an existing command by its unique identifier.
@@ -262,7 +219,7 @@ export const commandRouter = ({ commandModel }) => {
    *             schema:
    *               $ref: "#/components/schemas/ErrorResponse"
    */
-  router.delete('/cmd/:id', commandController.delete);
+  router.delete('/:id', commandController.delete);
 
   return router;
 };
