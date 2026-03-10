@@ -10,8 +10,10 @@ export const commandRouter = ({ commandModel }) => {
    * @openapi
    * /api/commands:
    *   get:
-   *     summary: Get all commands
-   *     description: Retrieve a list of all available commands. Can filter by trigger using ?trigger=.
+   *     summary: Get all commands or search by trigger
+   *     description: |
+   *       Without query parameters, returns a paginated list of all commands.
+   *       When `trigger` is provided, returns the single command matching that trigger string.
    *     tags:
    *       - Commands
    *     parameters:
@@ -19,18 +21,35 @@ export const commandRouter = ({ commandModel }) => {
    *         name: trigger
    *         schema:
    *           type: string
-   *         description: Filter commands by trigger string.
+   *         description: Trigger string to search for (e.g. `/hi1`). URL-encode special characters.
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *         description: Page number for pagination (default 1).
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *         description: Number of results per page (default 5).
    *     responses:
    *       200:
-   *         description: A list of commands.
+   *         description: A paginated list of commands, or a single matching command when trigger is provided.
    *         content:
    *           application/json:
    *             schema:
-   *               type: array
-   *               items:
-   *                 $ref: "#/components/schemas/Command"
-   *       400:
-   *         description: Bad request.
+   *               oneOf:
+   *                 - type: object
+   *                   properties:
+   *                     commands:
+   *                       type: array
+   *                       items:
+   *                         $ref: "#/components/schemas/Command"
+   *                     totalPages:
+   *                       type: integer
+   *                 - $ref: "#/components/schemas/Command"
+   *       404:
+   *         description: Command not found (only when trigger is used).
    *         content:
    *           application/json:
    *             schema:
@@ -42,7 +61,12 @@ export const commandRouter = ({ commandModel }) => {
    *             schema:
    *               $ref: "#/components/schemas/ErrorResponse"
    */
-  router.get('/', commandController.getAll);
+  const byTrigger = (req, res, next) => {
+    if (req.query.trigger)
+      return commandController.getByCommand(req, res, next);
+    next();
+  };
+  router.get('/', byTrigger, commandController.getAll);
 
   /**
    * @openapi

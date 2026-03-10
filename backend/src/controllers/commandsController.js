@@ -1,3 +1,4 @@
+import { NotFoundError, BadRequestError } from '../utils/errors.js';
 
 export class CommandController {
   constructor({ commandModel }) {
@@ -6,16 +7,21 @@ export class CommandController {
 
   getAll = async (req, res, next) => {
     try {
-      const { trigger } = req.query;
-      let commands;
-      if (trigger) {
-        commands = await this.commandModel.getByCommand({
-          command: decodeURIComponent(trigger),
-        });
-      } else {
-        commands = await this.commandModel.getAll({ query: req.query });
-      }
+      const commands = await this.commandModel.getAll({ query: req.query });
       res.json(commands);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getByCommand = async (req, res, next) => {
+    try {
+      const command = decodeURIComponent(req.query.trigger);
+      const result = await this.commandModel.getByCommand({ command });
+
+      if (!result) return next(new NotFoundError('Command'));
+
+      return res.json(result);
     } catch (error) {
       next(error);
     }
@@ -26,9 +32,7 @@ export class CommandController {
       const { id } = req.params;
       const commandData = await this.commandModel.getById({ id });
 
-      if (!commandData) {
-        return res.status(404).json({ message: "Command not found" });
-      }
+      if (!commandData) return next(new NotFoundError('Command'));
       res.json(commandData);
     } catch (error) {
       next(error);
@@ -37,11 +41,9 @@ export class CommandController {
 
   create = async (req, res, next) => {
     try {
-      const body = req.body;
-      const commandData = await this.commandModel.createCommand({ input: body });
-      if (!commandData) {
-        return res.status(422).json({ message: "The entity could not be processed" });
-      }
+      const commandData = await this.commandModel.createCommand({
+        input: req.body,
+      });
       res.status(201).json(commandData);
     } catch (error) {
       next(error);
@@ -53,20 +55,14 @@ export class CommandController {
       const { id } = req.params;
       const body = req.body;
 
-      if (!id || Object.keys(body).length === 0) {
-        return res.status(400).json({ message: "ID or body is missing" });
-      }
+      if (Object.keys(body).length === 0)
+        return next(new BadRequestError('Request body is empty'));
 
-      const commandUpdatedData = await this.commandModel.updateCommand({
+      const updatedData = await this.commandModel.updateCommand({
         id,
         input: body,
       });
-
-      if (!commandUpdatedData) {
-        return res.status(404).json({ message: "Command not found" });
-      }
-
-      return res.json(commandUpdatedData);
+      return res.json(updatedData);
     } catch (error) {
       next(error);
     }
@@ -75,18 +71,8 @@ export class CommandController {
   delete = async (req, res, next) => {
     try {
       const { id } = req.params;
-
-      if (!id) {
-        return res.status(400).json({ message: "ID is required" });
-      }
-
-      const deletedCommand = await this.commandModel.delete({ id });
-
-      if (deletedCommand === false) {
-        return res.status(404).json({ message: "Command not found" });
-      }
-
-      return res.json({ message: "Command deleted successfully" });
+      const result = await this.commandModel.delete({ id });
+      return res.json(result);
     } catch (error) {
       next(error);
     }
