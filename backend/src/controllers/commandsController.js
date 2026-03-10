@@ -16,7 +16,16 @@ export class CommandController {
 
   getByCommand = async (req, res, next) => {
     try {
-      const command = decodeURIComponent(req.query.trigger);
+      let command;
+      try {
+        command = decodeURIComponent(req.query.trigger);
+      } catch (error) {
+        if (error instanceof URIError) {
+          throw new BadRequestError('Invalid percent-encoding in query');
+        }
+        throw error;
+      }
+
       const result = await this.commandModel.getByCommand({ command });
 
       if (!result) return next(new NotFoundError('Command'));
