@@ -40,7 +40,7 @@ export const errorHandler = (err, req, res, next) => {
   if (err.name === 'CastError') {
     return res
       .status(400)
-      .json({ error: 'INVALID_ID', message: 'Malformatted ID' });
+      .json({ error: 'INVALID_ID', message: 'Malformed ID' });
   }
 
   if (err.name === 'ValidationError') {
