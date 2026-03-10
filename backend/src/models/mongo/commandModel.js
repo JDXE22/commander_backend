@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { commandSchema } from '../../schemas/mongo-schema/commandSchema.js';
 import { URL } from '../../config/config.js';
+import { ConflictError, NotFoundError } from '../../utils/errors.js';
 
 const clientOptions = {
   serverApi: {
@@ -31,8 +32,12 @@ export class CommandModel {
   getAll = async ({ query }) => {
     const { limit, page } = query;
 
-    const currentLimit = limit ? parseInt(limit) : 5;
-    const currentPage = page ? parseInt(page) : 1;
+    const parsedLimit = parseInt(limit);
+    const parsedPage = parseInt(page);
+
+    const currentLimit =
+      !isNaN(parsedLimit) && parsedLimit > 0 ? parsedLimit : 5;
+    const currentPage = !isNaN(parsedPage) && parsedPage > 0 ? parsedPage : 1;
     const skip = (currentPage - 1) * currentLimit;
     const result = await commandMongooseModel
       .find()
@@ -62,9 +67,7 @@ export class CommandModel {
     });
 
     if (commandExists) {
-      const error = new Error('A command with this trigger already exists');
-      error.name = 'ConflictError';
-      throw error;
+      throw new ConflictError('A command with this trigger already exists');
     }
 
     const command = new commandMongooseModel(input);
@@ -77,9 +80,7 @@ export class CommandModel {
     });
 
     if (!updated) {
-      const error = new Error('Command not found');
-      error.name = 'NotFoundError';
-      throw error;
+      throw new NotFoundError('Command');
     }
 
     return updated;
@@ -89,9 +90,7 @@ export class CommandModel {
     const deleted = await commandMongooseModel.findByIdAndDelete(id);
 
     if (!deleted) {
-      const error = new Error('Command not found');
-      error.name = 'NotFoundError';
-      throw error;
+      throw new NotFoundError('Command');
     }
 
     return { message: 'Command deleted successfully' };
