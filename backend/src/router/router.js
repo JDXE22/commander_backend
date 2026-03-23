@@ -13,7 +13,6 @@ export const createRouter = ({ commandModel, userModel }) => {
   const commandController = new CommandController({ commandModel });
   const authController = new AuthController({ userModel });
 
-  // 1. Health check (version-agnostic)
   /**
    * @openapi
    * /api/health:
@@ -24,12 +23,68 @@ export const createRouter = ({ commandModel, userModel }) => {
    *     responses:
    *       200:
    *         description: Service is healthy.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: ok
    */
   rootRouter.get('/health', getHealth);
 
   // 2. v2 Authentication
   const v2AuthRouter = Router();
+  
+  /**
+   * @openapi
+   * /api/v2/auth/register:
+   *   post:
+   *     summary: Register a new user
+   *     tags: [Auth]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: "#/components/schemas/RegisterInput"
+   *     responses:
+   *       201:
+   *         description: User registered successfully.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: "#/components/schemas/AuthResponse"
+   *       409:
+   *         description: User already exists.
+   *       400:
+   *         description: Bad request.
+   */
   v2AuthRouter.post('/register', authController.register);
+
+  /**
+   * @openapi
+   * /api/v2/auth/login:
+   *   post:
+   *     summary: Login and receive JWT token
+   *     tags: [Auth]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: "#/components/schemas/LoginInput"
+   *     responses:
+   *       200:
+   *         description: Login successful.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: "#/components/schemas/AuthResponse"
+   *       401:
+   *         description: Invalid credentials.
+   */
   v2AuthRouter.post('/login', authController.login);
   rootRouter.use('/v2/auth', v2AuthRouter);
 
@@ -48,10 +103,48 @@ export const createRouter = ({ commandModel, userModel }) => {
      * /api/commands:
      *   get:
      *     summary: Get all commands (v1)
-     *     tags: [Commands]
+     *     description: Retrieve all commands available in the legacy v1 public space.
+     *     tags: [Commands v1]
+     *     responses:
+     *       200:
+     *         description: List of v1 commands.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: "#/components/schemas/Command"
      */
     v1CommandsRouter.get('/', byTrigger, commandController.getAll);
+
+    /**
+     * @openapi
+     * /api/commands/{id}:
+     *   get:
+     *     summary: Get v1 command by ID
+     *     tags: [Commands v1]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     */
     v1CommandsRouter.get('/:id', commandController.getById);
+
+    /**
+     * @openapi
+     * /api/commands:
+     *   post:
+     *     summary: Create command (v1)
+     *     tags: [Commands v1]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: "#/components/schemas/CommandCreateInput"
+     */
     v1CommandsRouter.post('/', commandController.create);
     v1CommandsRouter.patch('/:id', commandController.update);
     v1CommandsRouter.delete('/:id', commandController.delete);
@@ -69,13 +162,83 @@ export const createRouter = ({ commandModel, userModel }) => {
      * /api/v2/commands:
      *   get:
      *     summary: Get user-scoped commands (v2)
+     *     description: Retrieve commands belonging to the authenticated user.
      *     security: [{ bearerAuth: [] }]
-     *     tags: [Commands V2]
+     *     tags: [Commands v2]
+     *     responses:
+     *       200:
+     *         description: User's private commands.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: "#/components/schemas/Command"
      */
     v2CommandsRouter.get('/', commandController.getAll);
+
+    /**
+     * @openapi
+     * /api/v2/commands/{id}:
+     *   get:
+     *     summary: Get v2 command by ID
+     *     security: [{ bearerAuth: [] }]
+     *     tags: [Commands v2]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     */
     v2CommandsRouter.get('/:id', commandController.getById);
+
+    /**
+     * @openapi
+     * /api/v2/commands:
+     *   post:
+     *     summary: Create user-scoped command (v2)
+     *     security: [{ bearerAuth: [] }]
+     *     tags: [Commands v2]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: "#/components/schemas/CommandCreateInput"
+     */
     v2CommandsRouter.post('/', commandController.create);
+
+    /**
+     * @openapi
+     * /api/v2/commands/{id}:
+     *   patch:
+     *     summary: Update v2 command
+     *     security: [{ bearerAuth: [] }]
+     *     tags: [Commands v2]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     */
     v2CommandsRouter.patch('/:id', commandController.update);
+
+    /**
+     * @openapi
+     * /api/v2/commands/{id}:
+     *   delete:
+     *     summary: Delete v2 command
+     *     security: [{ bearerAuth: [] }]
+     *     tags: [Commands v2]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     */
     v2CommandsRouter.delete('/:id', commandController.delete);
 
     rootRouter.use('/v2/commands', v2CommandsRouter);
