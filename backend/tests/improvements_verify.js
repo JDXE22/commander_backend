@@ -40,18 +40,22 @@ async function verify() {
     });
     console.log(`✅ Command created with userId: ${command.userId}`);
 
-    const othersCommands = await Command.find({
-      userId: { $ne: user._id },
-      userId2: user._id,
-    });
     const ownCommands = await Command.find({ userId: user._id });
     if (ownCommands.length !== 1) {
-      console.error(
-        `❌ Isolation failed — expected 1, got ${ownCommands.length}`,
-      );
+      console.error(`❌ Ownership check failed — expected 1, got ${ownCommands.length}`);
       failures++;
     } else {
-      console.log(`✅ Data isolation verified (1 command for this user)`);
+      console.log(`✅ Ownership check passed (1 command for this user)`);
+    }
+
+    // Cross-user isolation: a different userId must not see this user's command
+    const foreignUserId = new mongoose.Types.ObjectId();
+    const leakedCommands = await Command.find({ _id: command._id, userId: foreignUserId });
+    if (leakedCommands.length !== 0) {
+      console.error(`❌ Isolation FAILED — foreign user can access this command`);
+      failures++;
+    } else {
+      console.log(`✅ Isolation verified — foreign userId cannot access this command`);
     }
 
     await Command.deleteOne({ _id: command._id });

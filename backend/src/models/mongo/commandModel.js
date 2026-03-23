@@ -76,15 +76,16 @@ export class CommandModel {
   };
 
   createCommand = async ({ input, userId }) => {
-    const commandExists = await commandMongooseModel.findOne(
-      buildFilter({ command: input.command }, userId),
-    );
+    const ownerFilter = buildFilter({ command: input.command }, userId);
+
+    const commandExists = await commandMongooseModel.findOne(ownerFilter);
 
     if (commandExists) {
       throw new ConflictError('A command with this trigger already exists for this user');
     }
 
-    const command = new commandMongooseModel({ ...input, userId });
+    const doc = userId !== undefined ? { ...input, userId } : { ...input };
+    const command = new commandMongooseModel(doc);
     return command.save();
   };
 
