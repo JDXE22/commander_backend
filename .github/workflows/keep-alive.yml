@@ -14,7 +14,7 @@ jobs:
         run: |
           URL="https://commander-8xmm.onrender.com/api/health"
           MAX_RETRIES=3
-          RETRY_DELAY=10
+          RETRY_DELAY=60
 
           for i in $(seq 1 $MAX_RETRIES); do
             echo "Attempt $i..."
