@@ -10,6 +10,7 @@ const swaggerDefinition = {
   },
   servers: [
     {
+      url: '/',
       description: 'Local development server',
     },
   ],
