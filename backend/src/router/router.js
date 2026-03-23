@@ -1,5 +1,34 @@
 import { Router } from 'express';
 import { CommandController } from '../controllers/commandsController.js';
+import { getHealth } from '../controllers/healthController.js';
+
+export const healthRouter = () => {
+  const router = Router();
+
+  /**
+   * @openapi
+   * /:
+   *   get:
+   *     summary: Health check
+   *     description: Returns a simple JSON response to confirm the backend service is running.
+   *     tags:
+   *       - Health
+   *     responses:
+   *       200:
+   *         description: Service is healthy.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: ok
+   */
+  router.get('/', getHealth);
+
+  return router;
+};
 
 export const commandRouter = ({ commandModel }) => {
   const router = Router();
