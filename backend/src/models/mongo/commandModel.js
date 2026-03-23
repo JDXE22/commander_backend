@@ -28,6 +28,15 @@ const commandMongooseModel = mongoose.model(
   'commands',
 );
 connect();
+
+/**
+ * Builds a Mongoose filter object.
+ * userId is only included when defined — omitting it preserves v1 semantics
+ * (query all commands) while v2 scopes results to the authenticated user.
+ */
+const buildFilter = (base = {}, userId) =>
+  userId !== undefined ? { ...base, userId } : base;
+
 export class CommandModel {
   getAll = async ({ userId, query }) => {
     const { limit, page } = query;
@@ -39,14 +48,14 @@ export class CommandModel {
       !isNaN(parsedLimit) && parsedLimit > 0 ? parsedLimit : 5;
     const currentPage = !isNaN(parsedPage) && parsedPage > 0 ? parsedPage : 1;
     const skip = (currentPage - 1) * currentLimit;
-    
-    const queryObj = { userId };
-    
+
+    const filter = buildFilter({}, userId);
+
     const result = await commandMongooseModel
-      .find(queryObj)
+      .find(filter)
       .skip(skip)
       .limit(currentLimit);
-    const total = await commandMongooseModel.countDocuments(queryObj);
+    const total = await commandMongooseModel.countDocuments(filter);
     const totalPages = Math.ceil(total / currentLimit);
 
     return {
@@ -56,19 +65,20 @@ export class CommandModel {
   };
 
   getById = async ({ id, userId }) => {
-    return commandMongooseModel.findOne({ _id: id, userId });
+    return commandMongooseModel.findOne(buildFilter({ _id: id }, userId));
   };
 
   getByCommand = async ({ command, userId }) => {
-    const result = await commandMongooseModel.findOne({ command, userId });
+    const result = await commandMongooseModel.findOne(
+      buildFilter({ command }, userId),
+    );
     return result ?? null;
   };
 
   createCommand = async ({ input, userId }) => {
-    const commandExists = await commandMongooseModel.findOne({
-      command: input.command,
-      userId
-    });
+    const commandExists = await commandMongooseModel.findOne(
+      buildFilter({ command: input.command }, userId),
+    );
 
     if (commandExists) {
       throw new ConflictError('A command with this trigger already exists for this user');
@@ -80,9 +90,9 @@ export class CommandModel {
 
   updateCommand = async ({ id, input, userId }) => {
     const updated = await commandMongooseModel.findOneAndUpdate(
-      { _id: id, userId },
+      buildFilter({ _id: id }, userId),
       input,
-      { new: true }
+      { new: true },
     );
 
     if (!updated) {
@@ -93,7 +103,9 @@ export class CommandModel {
   };
 
   delete = async ({ id, userId }) => {
-    const deleted = await commandMongooseModel.findOneAndDelete({ _id: id, userId });
+    const deleted = await commandMongooseModel.findOneAndDelete(
+      buildFilter({ _id: id }, userId),
+    );
 
     if (!deleted) {
       throw new NotFoundError('Command');
