@@ -108,6 +108,16 @@ const swaggerDefinition = {
           message: { type: 'string' },
         },
       },
+      CommandsPage: {
+        type: 'object',
+        properties: {
+          commands: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/Command' },
+          },
+          totalPages: { type: 'integer', example: 4 },
+        },
+      },
       DeleteResponse: {
         type: 'object',
         properties: {

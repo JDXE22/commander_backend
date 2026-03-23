@@ -108,13 +108,11 @@ export const createRouter = ({ commandModel, userModel }) => {
      *     tags: [Commands v1]
      *     responses:
      *       200:
-     *         description: List of v1 commands.
+     *         description: Paginated list of v1 commands.
      *         content:
      *           application/json:
      *             schema:
-     *               type: array
-     *               items:
-     *                 $ref: "#/components/schemas/Command"
+     *               $ref: "#/components/schemas/CommandsPage"
      */
     v1CommandsRouter.get('/', byTriggerMiddleware, commandController.getAll);
 
@@ -168,13 +166,11 @@ export const createRouter = ({ commandModel, userModel }) => {
      *     tags: [Commands v2]
      *     responses:
      *       200:
-     *         description: User's private commands.
+     *         description: Paginated list of the authenticated user's commands.
      *         content:
      *           application/json:
      *             schema:
-     *               type: array
-     *               items:
-     *                 $ref: "#/components/schemas/Command"
+     *               $ref: "#/components/schemas/CommandsPage"
      */
     v2CommandsRouter.get('/', byTriggerMiddleware, commandController.getAll);
 
