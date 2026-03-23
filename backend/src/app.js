@@ -1,9 +1,6 @@
 import express from 'express';
 import 'dotenv/config';
-import { commandRouter, healthRouter } from './router/router.js';
-import { authRouter } from './router/authRouter.js';
-import { commandRouter_v2 } from './router/commandsRouter_v2.js';
-import { authMiddleware } from './middleware/authMiddleware.js';
+import { createRouter } from './router/router.js';
 import { errorHandler } from './utils/errors.js';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
@@ -28,22 +25,7 @@ export const createApp = ({ commandModel, userModel }) => {
 
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-  // Health check
-  app.use('/api/health', healthRouter());
-
-  // v2 Auth endpoints
-  app.use('/api/v2/auth', authRouter({ userModel }));
-
-  // v1 Commands (legacy, no auth) - Versioning controlled by API_VERSION env
-  const apiVersion = process.env.API_VERSION || 'both';
-  if (apiVersion === 'v1' || apiVersion === 'both') {
-    app.use('/api/commands', commandRouter({ commandModel }));
-  }
-
-  // v2 Commands (requires auth)
-  if (apiVersion === 'v2' || apiVersion === 'both') {
-    app.use('/api/v2/commands', authMiddleware, commandRouter_v2({ commandModel }));
-  }
+  app.use('/api', createRouter({ commandModel, userModel }));
 
   app.use(errorHandler);
 

@@ -1,278 +1,85 @@
 import { Router } from 'express';
 import { CommandController } from '../controllers/commandsController.js';
+import { AuthController } from '../controllers/authController.js';
 import { getHealth } from '../controllers/healthController.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 
-export const healthRouter = () => {
-  const router = Router();
+/**
+ * Creates the main API router for the application.
+ * Consolidates v1 and v2 routes into a single version-aware entry point.
+ */
+export const createRouter = ({ commandModel, userModel }) => {
+  const rootRouter = Router();
+  const commandController = new CommandController({ commandModel });
+  const authController = new AuthController({ userModel });
 
+  // 1. Health check (version-agnostic)
   /**
    * @openapi
-   * /:
+   * /api/health:
    *   get:
    *     summary: Health check
    *     description: Returns a simple JSON response to confirm the backend service is running.
-   *     tags:
-   *       - Health
+   *     tags: [Health]
    *     responses:
    *       200:
    *         description: Service is healthy.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: ok
    */
-  router.get('/', getHealth);
+  rootRouter.get('/health', getHealth);
 
-  return router;
-};
+  // 2. v2 Authentication
+  const v2AuthRouter = Router();
+  v2AuthRouter.post('/register', authController.register);
+  v2AuthRouter.post('/login', authController.login);
+  rootRouter.use('/v2/auth', v2AuthRouter);
 
-export const commandRouter = ({ commandModel }) => {
-  const router = Router();
+  // 3. v1 Commands (Legacy, unauthenticated)
+  const apiVersion = process.env.API_VERSION || 'both';
+  if (apiVersion === 'v1' || apiVersion === 'both') {
+    const v1CommandsRouter = Router();
+    
+    const byTrigger = (req, res, next) => {
+      if (req.query.trigger) return commandController.getByCommand(req, res, next);
+      next();
+    };
 
-  const commandController = new CommandController({ commandModel });
+    /**
+     * @openapi
+     * /api/commands:
+     *   get:
+     *     summary: Get all commands (v1)
+     *     tags: [Commands]
+     */
+    v1CommandsRouter.get('/', byTrigger, commandController.getAll);
+    v1CommandsRouter.get('/:id', commandController.getById);
+    v1CommandsRouter.post('/', commandController.create);
+    v1CommandsRouter.patch('/:id', commandController.update);
+    v1CommandsRouter.delete('/:id', commandController.delete);
+    
+    rootRouter.use('/commands', v1CommandsRouter);
+  }
 
-  /**
-   * @openapi
-   * /api/commands:
-   *   get:
-   *     summary: Get all commands or search by trigger
-   *     description: |
-   *       Without query parameters, returns a paginated list of all commands.
-   *       When `trigger` is provided, returns the single command matching that trigger string.
-   *     tags:
-   *       - Commands
-   *     parameters:
-   *       - in: query
-   *         name: trigger
-   *         schema:
-   *           type: string
-   *         description: Trigger string to search for (e.g. `/hi1`). URL-encode special characters.
-   *       - in: query
-   *         name: page
-   *         schema:
-   *           type: integer
-   *         description: Page number for pagination (default 1).
-   *       - in: query
-   *         name: limit
-   *         schema:
-   *           type: integer
-   *         description: Number of results per page (default 5).
-   *     responses:
-   *       200:
-   *         description: A paginated list of commands, or a single matching command when trigger is provided.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               oneOf:
-   *                 - type: object
-   *                   properties:
-   *                     commands:
-   *                       type: array
-   *                       items:
-   *                         $ref: "#/components/schemas/Command"
-   *                     totalPages:
-   *                       type: integer
-   *                 - $ref: "#/components/schemas/Command"
-   *       404:
-   *         description: Command not found (only when trigger is used).
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   *       500:
-   *         description: Internal server error.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   */
-  const byTrigger = (req, res, next) => {
-    if (req.query.trigger)
-      return commandController.getByCommand(req, res, next);
-    next();
-  };
-  router.get('/', byTrigger, commandController.getAll);
+  // 4. v2 Commands (Authenticated)
+  if (apiVersion === 'v2' || apiVersion === 'both') {
+    const v2CommandsRouter = Router();
+    v2CommandsRouter.use(authMiddleware);
 
-  /**
-   * @openapi
-   * /api/commands/{id}:
-   *   get:
-   *     summary: Get command by ID
-   *     description: Retrieve a single command using its unique identifier.
-   *     tags:
-   *       - Commands
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Unique identifier of the command.
-   *     responses:
-   *       200:
-   *         description: Command found.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/Command"
-   *       400:
-   *         description: Bad request.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   *       404:
-   *         description: Command not found.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   *       500:
-   *         description: Internal server error.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   */
-  router.get('/:id', commandController.getById);
+    /**
+     * @openapi
+     * /api/v2/commands:
+     *   get:
+     *     summary: Get user-scoped commands (v2)
+     *     security: [{ bearerAuth: [] }]
+     *     tags: [Commands V2]
+     */
+    v2CommandsRouter.get('/', commandController.getAll);
+    v2CommandsRouter.get('/:id', commandController.getById);
+    v2CommandsRouter.post('/', commandController.create);
+    v2CommandsRouter.patch('/:id', commandController.update);
+    v2CommandsRouter.delete('/:id', commandController.delete);
 
-  /**
-   * @openapi
-   * /api/commands:
-   *   post:
-   *     summary: Create a new command
-   *     description: Create a new command that maps a trigger to a text response.
-   *     tags:
-   *       - Commands
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: "#/components/schemas/CommandCreateInput"
-   *     responses:
-   *       201:
-   *         description: Command created successfully.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/Command"
-   *       400:
-   *         description: Bad request.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   *       409:
-   *         description: Command already exists.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   *       500:
-   *         description: Internal server error.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   */
-  router.post('/', commandController.create);
+    rootRouter.use('/v2/commands', v2CommandsRouter);
+  }
 
-  /**
-   * @openapi
-   * /api/commands/{id}:
-   *   patch:
-   *     summary: Update an existing command
-   *     description: Update one or more fields of an existing command.
-   *     tags:
-   *       - Commands
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Unique identifier of the command to update.
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: "#/components/schemas/CommandUpdateInput"
-   *     responses:
-   *       200:
-   *         description: Command updated successfully.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/Command"
-   *       400:
-   *         description: Bad request.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   *       404:
-   *         description: Command not found.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   *       500:
-   *         description: Internal server error.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   */
-  router.patch('/:id', commandController.update);
-
-  /**
-   * @openapi
-   * /api/commands/{id}:
-   *   delete:
-   *     summary: Delete a command
-   *     description: Delete an existing command by its unique identifier.
-   *     tags:
-   *       - Commands
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Unique identifier of the command to delete.
-   *     responses:
-   *       200:
-   *         description: Command deleted successfully.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/DeleteResponse"
-   *       400:
-   *         description: Bad request.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   *       404:
-   *         description: Command not found.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   *       500:
-   *         description: Internal server error.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/ErrorResponse"
-   */
-  router.delete('/:id', commandController.delete);
-
-  return router;
+  return rootRouter;
 };
