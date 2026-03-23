@@ -11,7 +11,8 @@ import { authMiddleware } from '../middleware/authMiddleware.js';
 export const createRouter = ({ commandModel, userModel }) => {
   const rootRouter = Router();
   const commandController = new CommandController({ commandModel });
-  const authController = new AuthController({ userModel });
+  const apiVersion = process.env.API_VERSION || 'both';
+  const isV2 = apiVersion === 'v2' || apiVersion === 'both';
 
   /**
    * @openapi
@@ -34,62 +35,64 @@ export const createRouter = ({ commandModel, userModel }) => {
    */
   rootRouter.get('/health', getHealth);
 
-  // 2. v2 Authentication
-  const v2AuthRouter = Router();
-  
-  /**
-   * @openapi
-   * /api/v2/auth/register:
-   *   post:
-   *     summary: Register a new user
-   *     tags: [Auth]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: "#/components/schemas/RegisterInput"
-   *     responses:
-   *       201:
-   *         description: User registered successfully.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/AuthResponse"
-   *       409:
-   *         description: User already exists.
-   *       400:
-   *         description: Bad request.
-   */
-  v2AuthRouter.post('/register', authController.register);
+  // 2. v2 Authentication (only when v2 is active and userModel is available)
+  if (isV2 && userModel) {
+    const authController = new AuthController({ userModel });
+    const v2AuthRouter = Router();
 
-  /**
-   * @openapi
-   * /api/v2/auth/login:
-   *   post:
-   *     summary: Login and receive JWT token
-   *     tags: [Auth]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: "#/components/schemas/LoginInput"
-   *     responses:
-   *       200:
-   *         description: Login successful.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/AuthResponse"
-   *       401:
-   *         description: Invalid credentials.
-   */
-  v2AuthRouter.post('/login', authController.login);
-  rootRouter.use('/v2/auth', v2AuthRouter);
+    /**
+     * @openapi
+     * /api/v2/auth/register:
+     *   post:
+     *     summary: Register a new user
+     *     tags: [Auth]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: "#/components/schemas/RegisterInput"
+     *     responses:
+     *       201:
+     *         description: User registered successfully.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: "#/components/schemas/AuthResponse"
+     *       409:
+     *         description: User already exists.
+     *       400:
+     *         description: Bad request.
+     */
+    v2AuthRouter.post('/register', authController.register);
+
+    /**
+     * @openapi
+     * /api/v2/auth/login:
+     *   post:
+     *     summary: Login and receive JWT token
+     *     tags: [Auth]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: "#/components/schemas/LoginInput"
+     *     responses:
+     *       200:
+     *         description: Login successful.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: "#/components/schemas/AuthResponse"
+     *       401:
+     *         description: Invalid credentials.
+     */
+    v2AuthRouter.post('/login', authController.login);
+    rootRouter.use('/v2/auth', v2AuthRouter);
+  }
 
   // 3. v1 Commands (Legacy, unauthenticated)
-  const apiVersion = process.env.API_VERSION || 'both';
   if (apiVersion === 'v1' || apiVersion === 'both') {
     const v1CommandsRouter = Router();
     
