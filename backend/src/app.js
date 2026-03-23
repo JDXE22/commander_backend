@@ -1,6 +1,6 @@
 import express from 'express';
 import 'dotenv/config';
-import { commandRouter } from './router/router.js';
+import { commandRouter, healthRouter } from './router/router.js';
 import { errorHandler } from './utils/errors.js';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';

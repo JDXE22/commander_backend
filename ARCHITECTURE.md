@@ -40,7 +40,8 @@ flowchart LR
 │       │   ├── config.js
 │       │   └── swagger.js
 │       ├── controllers/
-│       │   └── commandsController.js
+│       │   ├── commandsController.js
+│       │   └── healthController.js
 │       ├── models/
 │       │   ├── local-system/
 │       │   │   └── commandModel.js
@@ -83,11 +84,13 @@ flowchart LR
 
 Base paths:
 
+- `/` (health check)
 - `/api/commands`
 - `/api-docs`
 
 | Method   | Route                            | Purpose                      |
 | -------- | -------------------------------- | ---------------------------- |
+| `GET`    | `/`                              | Health check                 |
 | `GET`    | `/api/commands`                  | List commands                |
 | `GET`    | `/api/commands?trigger=%2Fhello` | Resolve a command by trigger |
 | `GET`    | `/api/commands/:id`              | Get a command by ID          |
