@@ -3,6 +3,7 @@ import { CommandController } from '../controllers/commandsController.js';
 import { AuthController } from '../controllers/authController.js';
 import { getHealth } from '../controllers/healthController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
+import { byTrigger } from '../middleware/triggerMiddleware.js';
 
 /**
  * Creates the main API router for the application.
@@ -13,6 +14,8 @@ export const createRouter = ({ commandModel, userModel }) => {
   const commandController = new CommandController({ commandModel });
   const apiVersion = process.env.API_VERSION || 'both';
   const isV2 = apiVersion === 'v2' || apiVersion === 'both';
+
+  const byTriggerMiddleware = byTrigger(commandController.getByCommand);
 
   /**
    * @openapi
@@ -95,11 +98,6 @@ export const createRouter = ({ commandModel, userModel }) => {
   // 3. v1 Commands (Legacy, unauthenticated)
   if (apiVersion === 'v1' || apiVersion === 'both') {
     const v1CommandsRouter = Router();
-    
-    const byTrigger = (req, res, next) => {
-      if (req.query.trigger) return commandController.getByCommand(req, res, next);
-      next();
-    };
 
     /**
      * @openapi
@@ -118,7 +116,7 @@ export const createRouter = ({ commandModel, userModel }) => {
      *               items:
      *                 $ref: "#/components/schemas/Command"
      */
-    v1CommandsRouter.get('/', byTrigger, commandController.getAll);
+    v1CommandsRouter.get('/', byTriggerMiddleware, commandController.getAll);
 
     /**
      * @openapi
@@ -151,7 +149,7 @@ export const createRouter = ({ commandModel, userModel }) => {
     v1CommandsRouter.post('/', commandController.create);
     v1CommandsRouter.patch('/:id', commandController.update);
     v1CommandsRouter.delete('/:id', commandController.delete);
-    
+
     rootRouter.use('/commands', v1CommandsRouter);
   }
 
@@ -178,7 +176,7 @@ export const createRouter = ({ commandModel, userModel }) => {
      *               items:
      *                 $ref: "#/components/schemas/Command"
      */
-    v2CommandsRouter.get('/', commandController.getAll);
+    v2CommandsRouter.get('/', byTriggerMiddleware, commandController.getAll);
 
     /**
      * @openapi
