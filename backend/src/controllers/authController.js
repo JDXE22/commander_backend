@@ -50,7 +50,9 @@ export class AuthController {
 
       const existingUser = await this.userModel.findOne({ username, email });
       if (existingUser) {
-        throw new ConflictError('User already exists');
+        const isSameUsername = existingUser.username.localeCompare(username, undefined, { sensitivity: 'base' }) === 0;
+        const field = isSameUsername ? 'Username' : 'Email';
+        throw new ConflictError(`${field} is already taken`);
       }
 
       const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);

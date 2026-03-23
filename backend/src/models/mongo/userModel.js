@@ -9,11 +9,12 @@ export class UserModel {
     return user.save();
   };
 
-  findOne = async ({ username, email }) => {
-    const query = {};
-    if (username) query.username = username;
-    if (email) query.email = email;
-    return userMongooseModel.findOne(query);
+  findOne = async ({ username, email } = {}) => {
+    const conditions = [];
+    if (username) conditions.push({ username });
+    if (email) conditions.push({ email });
+    if (conditions.length === 0) return null;
+    return userMongooseModel.findOne({ $or: conditions });
   };
 
   findById = async (id) => {
