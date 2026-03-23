@@ -1,49 +1,65 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { BadRequestError, ConflictError, UnauthorizedError } from '../utils/errors.js';
+
+const SALT_ROUNDS = 10;
+const MIN_PASSWORD_LENGTH = 8;
+
+function validateRegisterInput({ username, email, password }) {
+  if (!username || !email || !password) {
+    throw new BadRequestError('Username, email, and password are required');
+  }
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    throw new BadRequestError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long`);
+  }
+}
+
+function validateLoginInput({ username, password }) {
+  if (!username || !password) {
+    throw new BadRequestError('Username and password are required');
+  }
+}
+
+function formatAuthResponse(user, token) {
+  return {
+    userId: user._id,
+    username: user.username,
+    email: user.email,
+    token,
+  };
+}
 
 export class AuthController {
   constructor({ userModel }) {
     this.userModel = userModel;
   }
 
+  #createToken(userId, username) {
+    return jwt.sign(
+      { userId, username },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRY || '7d' }
+    );
+  }
+
   register = async (req, res, next) => {
     try {
+      validateRegisterInput(req.body);
+
       const { username, email, password } = req.body;
-
-      if (!username || !email || !password) {
-        return res.status(400).json({ error: 'Username, email, and password required' });
-      }
-
-      if (password.length < 8) {
-        return res.status(400).json({ error: 'Password must be at least 8 characters long' });
-      }
 
       const existingUser = await this.userModel.findOne({ username, email });
       if (existingUser) {
-        return res.status(409).json({ error: 'User already exists' });
+        throw new ConflictError('User already exists');
       }
 
-      const passwordHash = await bcrypt.hash(password, 10);
-      const userSource = await this.userModel.create({
-        input: {
-          username,
-          email,
-          passwordHash
-        }
+      const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+      const user = await this.userModel.create({
+        input: { username, email, passwordHash },
       });
 
-      const token = jwt.sign(
-        { userId: userSource._id, username: userSource.username },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRY || '7d' }
-      );
-
-      res.status(201).json({
-        userId: userSource._id,
-        username: userSource.username,
-        email: userSource.email,
-        token
-      });
+      const token = this.#createToken(user._id, user.username);
+      res.status(201).json(formatAuthResponse(user, token));
     } catch (error) {
       next(error);
     }
@@ -51,34 +67,22 @@ export class AuthController {
 
   login = async (req, res, next) => {
     try {
+      validateLoginInput(req.body);
+
       const { username, password } = req.body;
 
-      if (!username || !password) {
-        return res.status(400).json({ error: 'Username and password required' });
+      const user = await this.userModel.findOne({ username });
+      if (!user) {
+        throw new UnauthorizedError('Invalid username or password');
       }
 
-      const userSource = await this.userModel.findOne({ username });
-      if (!userSource) {
-        return res.status(401).json({ error: 'Invalid username or password' });
+      const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+      if (!isValidPassword) {
+        throw new UnauthorizedError('Invalid username or password');
       }
 
-      const isValid = await bcrypt.compare(password, userSource.passwordHash);
-      if (!isValid) {
-        return res.status(401).json({ error: 'Invalid username or password' });
-      }
-
-      const token = jwt.sign(
-        { userId: userSource._id, username: userSource.username },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRY || '7d' }
-      );
-
-      res.json({
-        userId: userSource._id,
-        username: userSource.username,
-        email: userSource.email,
-        token
-      });
+      const token = this.#createToken(user._id, user.username);
+      res.json(formatAuthResponse(user, token));
     } catch (error) {
       next(error);
     }

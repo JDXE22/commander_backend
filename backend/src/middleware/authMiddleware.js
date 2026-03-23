@@ -1,16 +1,17 @@
 import jwt from 'jsonwebtoken';
+import { UnauthorizedError } from '../utils/errors.js';
 
 export const authMiddleware = (req, res, next) => {
   const authHeader = req.headers['authorization'];
 
   if (!authHeader) {
-    return res.status(401).json({ error: 'Missing authorization header' });
+    return next(new UnauthorizedError('Missing authorization header'));
   }
 
   const [scheme, token] = authHeader.split(' ');
 
   if (scheme !== 'Bearer' || !token) {
-    return res.status(401).json({ error: 'Invalid authorization header format' });
+    return next(new UnauthorizedError('Invalid authorization header format'));
   }
 
   try {
@@ -20,7 +21,7 @@ export const authMiddleware = (req, res, next) => {
       username: decoded.username,
     };
     next();
-  } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+  } catch {
+    return next(new UnauthorizedError('Invalid or expired token'));
   }
 };

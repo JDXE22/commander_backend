@@ -28,8 +28,14 @@ export class BadRequestError extends AppError {
   }
 }
 
+export class UnauthorizedError extends AppError {
+  constructor(message = 'Unauthorized') {
+    super(401, message, 'UNAUTHORIZED');
+    this.name = 'UnauthorizedError';
+  }
+}
+
 export const errorHandler = (err, req, res, next) => {
-  // Mongoose: duplicate key
   if (err.name === 'MongoServerError' && err.message.includes('E11000')) {
     return res.status(409).json({
       error: 'CONFLICT',
