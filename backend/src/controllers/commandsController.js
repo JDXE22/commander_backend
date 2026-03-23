@@ -77,9 +77,20 @@ export class CommandController {
       if (Object.keys(body).length === 0)
         return next(new BadRequestError('Request body is empty'));
 
+      const {
+        userId: _u,
+        _id: _i,
+        createdAt: _c,
+        updatedAt: _d,
+        ...safeInput
+      } = body;
+
+      if (Object.keys(safeInput).length === 0)
+        return next(new BadRequestError('No updatable fields provided'));
+
       const updatedCommand = await this.commandModel.updateCommand({
         id,
-        input: body,
+        input: safeInput,
         userId: req.user?.userId,
       });
       return res.json(updatedCommand);
