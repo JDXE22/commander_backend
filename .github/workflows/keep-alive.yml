@@ -3,13 +3,36 @@ name: Keep Backend Alive
 on:
   schedule:
     - cron: "*/5 * * * *"
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Ping backend
+      - name: Ping backend with retries
         run: |
-          curl -s -o /dev/null -w "%{http_code}" https://commander-8xmm.onrender.com/api/health
+          URL="https://commander-8xmm.onrender.com/api/health"
+          MAX_RETRIES=3
+          RETRY_DELAY=10
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i..."
+
+            status=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+
+            if [ "$status" -eq 200 ]; then
+              echo "Success! Status: $status"
+              exit 0
+            fi
+
+            echo "Failed with status: $status"
+
+            if [ $i -lt $MAX_RETRIES ]; then
+              echo "Retrying in $RETRY_DELAY seconds..."
+              sleep $RETRY_DELAY
+            fi
+          done
+
+          echo "All attempts failed ❌"
+          exit 1
