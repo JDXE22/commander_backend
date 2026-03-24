@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --watch src/mongo-db.js"
+    "start": "node --watch src/mongo-db.js",
+    "verify-forgot-password": "node tests/verify_forgot_password.js"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongodb": "6.15.0",
     "mongoose": "8.13.2",
+    "nodemailer": "^8.0.3",
     "swagger-jsdoc": "6.2.8",
     "swagger-ui-express": "5.0.1"
   }

@@ -29,6 +29,14 @@ export const userSchema = new mongoose.Schema(
       enum: ['free', 'pro', 'enterprise'],
       default: 'free',
     },
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      select: false,
+    },
   },
   { timestamps: true },
 );
