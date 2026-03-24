@@ -17,21 +17,21 @@ export const validateSmtpConfig = () => {
   const { host, port, auth } = SMTP_CONFIG;
 
   const rules = [
-    { 
-      isValid: !!host, 
-      label: 'SMTP_HOST' 
+    {
+      isValid: !!host,
+      label: 'SMTP_HOST',
     },
-    { 
-      isValid: port && !isNaN(port), 
-      label: 'SMTP_PORT (valid number)' 
+    {
+      isValid: Number.isInteger(port) && port >= 1 && port <= 65535,
+      label: 'SMTP_PORT (integer between 1 and 65535)',
     },
-    { 
-      isValid: !!auth.user, 
-      label: 'SMTP_USER' 
+    {
+      isValid: !!auth.user,
+      label: 'SMTP_USER',
     },
-    { 
-      isValid: !!auth.pass, 
-      label: 'SMTP_PASS' 
+    {
+      isValid: !!auth.pass,
+      label: 'SMTP_PASS',
     },
   ];
 
