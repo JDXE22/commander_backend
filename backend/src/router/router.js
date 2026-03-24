@@ -4,6 +4,12 @@ import { AuthController } from '../controllers/authController.js';
 import { getHealth } from '../controllers/healthController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { byTrigger } from '../middleware/triggerMiddleware.js';
+import { 
+  validateRegisterInput, 
+  validateLoginInput, 
+  validateForgotPasswordInput, 
+  validateResetPasswordInput 
+} from '../middleware/authValidation.js';
 
 /**
  * Creates the main API router for the application.
@@ -67,7 +73,7 @@ export const createRouter = ({ commandModel, userModel }) => {
      *       400:
      *         description: Bad request.
      */
-    v2AuthRouter.post('/register', authController.register);
+    v2AuthRouter.post('/register', validateRegisterInput, authController.register);
 
     /**
      * @openapi
@@ -91,7 +97,7 @@ export const createRouter = ({ commandModel, userModel }) => {
      *       401:
      *         description: Invalid credentials.
      */
-    v2AuthRouter.post('/login', authController.login);
+    v2AuthRouter.post('/login', validateLoginInput, authController.login);
 
     /**
      * @openapi
@@ -120,7 +126,7 @@ export const createRouter = ({ commandModel, userModel }) => {
      *                 message:
      *                   type: string
      */
-    v2AuthRouter.post('/forgot-password', authController.forgotPassword);
+    v2AuthRouter.post('/forgot-password', validateForgotPasswordInput, authController.forgotPassword);
 
     /**
      * @openapi
@@ -150,7 +156,7 @@ export const createRouter = ({ commandModel, userModel }) => {
      *       400:
      *         description: Invalid token or password.
      */
-    v2AuthRouter.post('/reset-password/:token', authController.resetPassword);
+    v2AuthRouter.post('/reset-password/:token', validateResetPasswordInput, authController.resetPassword);
 
     rootRouter.use('/v2/auth', v2AuthRouter);
   }

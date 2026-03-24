@@ -1,19 +1,7 @@
 import nodemailer from 'nodemailer';
-import {
-  SMTP_CONFIG,
-  EMAIL_FROM,
-  validateSmtpConfig,
-} from '../config/config.js';
+import { SMTP_CONFIG, EMAIL_FROM } from '../config/config.js';
 
-let transporter = null;
-
-const getTransporter = () => {
-  if (!transporter) {
-    validateSmtpConfig();
-    transporter = nodemailer.createTransport(SMTP_CONFIG);
-  }
-  return transporter;
-};
+const transporter = nodemailer.createTransport(SMTP_CONFIG);
 
 export const sendEmail = async ({ to, subject, html }) => {
   const mailOptions = {
@@ -23,12 +11,21 @@ export const sendEmail = async ({ to, subject, html }) => {
     html,
   };
 
-  const currentTransporter = getTransporter();
-  return currentTransporter.sendMail(mailOptions);
+  return transporter.sendMail(mailOptions);
 };
 
 export const sendResetPasswordEmail = async (email, token, frontendUrl) => {
-  const baseUrl = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
+  if (typeof frontendUrl !== 'string' || frontendUrl.trim() === '') {
+    throw new Error(
+      'frontendUrl must be a non-empty string when sending a reset password email',
+    );
+  }
+
+  const normalizedFrontendUrl = frontendUrl.trim();
+
+  const baseUrl = normalizedFrontendUrl.endsWith('/')
+    ? normalizedFrontendUrl.slice(0, -1)
+    : normalizedFrontendUrl;
   const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
 
   const html = `
