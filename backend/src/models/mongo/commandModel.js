@@ -29,11 +29,6 @@ const commandMongooseModel = mongoose.model(
 );
 connect();
 
-/**
- * Builds a Mongoose filter object.
- * userId is only included when defined — omitting it preserves v1 semantics
- * (query all commands) while v2 scopes results to the authenticated user.
- */
 const buildFilter = (base = {}, userId) =>
   userId !== undefined ? { ...base, userId } : base;
 
@@ -81,7 +76,9 @@ export class CommandModel {
     const commandExists = await commandMongooseModel.findOne(ownerFilter);
 
     if (commandExists) {
-      throw new ConflictError('A command with this trigger already exists for this user');
+      throw new ConflictError(
+        'A command with this trigger already exists for this user',
+      );
     }
 
     const doc = userId !== undefined ? { ...input, userId } : { ...input };
