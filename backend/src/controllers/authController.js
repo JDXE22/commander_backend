@@ -1,9 +1,16 @@
 import bcrypt from 'bcrypt';
-import { ConflictError, UnauthorizedError, BadRequestError } from '../utils/errors.js';
+import {
+  ConflictError,
+  UnauthorizedError,
+  BadRequestError,
+} from '../utils/errors.js';
 import { sendResetPasswordEmail } from '../utils/email.js';
 import { FRONTEND_URL } from '../config/config.js';
 import { createToken, hashToken, generateRandomToken } from '../utils/auth.js';
-import { SALT_ROUNDS, RESET_PASSWORD_TOKEN_EXPIRY_MS } from '../config/constants.js';
+import {
+  SALT_ROUNDS,
+  RESET_PASSWORD_TOKEN_EXPIRY_MS,
+} from '../config/constants.js';
 
 function formatAuthResponse(user, token) {
   return {
@@ -25,7 +32,10 @@ export class AuthController {
 
       const existingUser = await this.userModel.findOne({ username, email });
       if (existingUser) {
-        const isSameUsername = existingUser.username.localeCompare(username, undefined, { sensitivity: 'base' }) === 0;
+        const isSameUsername =
+          existingUser.username.localeCompare(username, undefined, {
+            sensitivity: 'base',
+          }) === 0;
         const field = isSameUsername ? 'Username' : 'Email';
         throw new ConflictError(`${field} is already taken`);
       }
@@ -67,7 +77,7 @@ export class AuthController {
     try {
       const { email } = req.body;
       const user = await this.userModel.findByEmail(email);
-      
+
       if (user) {
         const resetToken = generateRandomToken();
         const hashedToken = hashToken(resetToken);
@@ -78,10 +88,15 @@ export class AuthController {
           resetExpires,
         });
 
-        sendResetPasswordEmail(user.email, resetToken, FRONTEND_URL).catch(console.error);
+        sendResetPasswordEmail(user.email, resetToken, FRONTEND_URL).catch(
+          console.error,
+        );
       }
 
-      res.json({ message: 'If an account exists for this email, you will receive a reset link shortly.' });
+      res.json({
+        message:
+          'If an account exists for this email, you will receive a reset link shortly.',
+      });
     } catch (error) {
       next(error);
     }
@@ -94,10 +109,12 @@ export class AuthController {
 
       const hashedToken = hashToken(token);
       const user = await this.userModel.findByResetToken(hashedToken);
-      
+
       const isInvalidToken = !user || user.resetPasswordExpires < Date.now();
       if (isInvalidToken) {
-        throw new BadRequestError('Password reset token is invalid or has expired');
+        throw new BadRequestError(
+          'Password reset token is invalid or has expired',
+        );
       }
 
       const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
