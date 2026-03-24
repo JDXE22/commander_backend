@@ -5,7 +5,7 @@ import assert from 'node:assert';
 async function testConfigValidation() {
   console.log('Running Email Config Validation Tests...');
 
-  const originalConfig = JSON.parse(JSON.stringify(SMTP_CONFIG));
+  const originalConfig = structuredClone(SMTP_CONFIG);
   try {
     SMTP_CONFIG.host = undefined;
     assert.throws(() => validateSmtpConfig(), /Missing: SMTP_HOST/);
