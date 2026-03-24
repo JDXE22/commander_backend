@@ -107,6 +107,10 @@ export class AuthController {
       const { token } = req.params;
       const { newPassword } = req.body;
 
+      if (!token || typeof token !== 'string' || token.trim() === '') {
+        throw new BadRequestError('Password reset token is required');
+      }
+
       const hashedToken = hashToken(token);
       const user = await this.userModel.findByResetToken(hashedToken);
 
