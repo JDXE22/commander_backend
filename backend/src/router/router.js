@@ -92,6 +92,66 @@ export const createRouter = ({ commandModel, userModel }) => {
      *         description: Invalid credentials.
      */
     v2AuthRouter.post('/login', authController.login);
+
+    /**
+     * @openapi
+     * /api/v2/auth/forgot-password:
+     *   post:
+     *     summary: Request a password reset
+     *     tags: [Auth]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               email:
+     *                 type: string
+     *                 format: email
+     *     responses:
+     *       200:
+     *         description: Reset email sent (if account exists).
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     */
+    v2AuthRouter.post('/forgot-password', authController.forgotPassword);
+
+    /**
+     * @openapi
+     * /api/v2/auth/reset-password/{token}:
+     *   post:
+     *     summary: Reset password using token
+     *     tags: [Auth]
+     *     parameters:
+     *       - in: path
+     *         name: token
+     *         required: true
+     *         schema:
+     *           type: string
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               newPassword:
+     *                 type: string
+     *                 minLength: 8
+     *     responses:
+     *       200:
+     *         description: Password reset successful.
+     *       400:
+     *         description: Invalid token or password.
+     */
+    v2AuthRouter.post('/reset-password/:token', authController.resetPassword);
+
     rootRouter.use('/v2/auth', v2AuthRouter);
   }
 

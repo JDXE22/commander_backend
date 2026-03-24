@@ -20,4 +20,35 @@ export class UserModel {
   findById = async (id) => {
     return userMongooseModel.findById(id);
   };
+
+  findByEmail = async (email) => {
+    return userMongooseModel.findOne({ email }).select('+resetPasswordToken +resetPasswordExpires');
+  };
+
+  findByResetToken = async (token) => {
+    return userMongooseModel.findOne({ resetPasswordToken: token }).select('+resetPasswordToken +resetPasswordExpires');
+  };
+
+  updateResetFields = async (userId, { resetToken, resetExpires }) => {
+    return userMongooseModel.findByIdAndUpdate(
+      userId,
+      {
+        resetPasswordToken: resetToken,
+        resetPasswordExpires: resetExpires,
+      },
+      { new: true }
+    );
+  };
+
+  updatePassword = async (userId, passwordHash) => {
+    return userMongooseModel.findByIdAndUpdate(
+      userId,
+      {
+        passwordHash,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      },
+      { new: true }
+    );
+  };
 }

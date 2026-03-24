@@ -2,18 +2,10 @@ import express from 'express';
 import 'dotenv/config';
 import { createRouter } from './router/router.js';
 import { errorHandler } from './utils/errors.js';
+import { requestLogger } from './middleware/loggerMiddleware.js';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.js';
-
-const requestLogger = (req, res, next) => {
-  const start = Date.now();
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    console.log(`${req.method} ${req.path} ${res.statusCode} ${duration}ms`);
-  });
-  next();
-};
 
 export const createApp = ({ commandModel, userModel }) => {
   const app = express();
