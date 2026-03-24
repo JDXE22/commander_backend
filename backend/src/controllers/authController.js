@@ -1,7 +1,11 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
-import { BadRequestError, ConflictError, UnauthorizedError } from '../utils/errors.js';
+import {
+  BadRequestError,
+  ConflictError,
+  UnauthorizedError,
+} from '../utils/errors.js';
 import { sendResetPasswordEmail } from '../utils/email.js';
 import { FRONTEND_URL } from '../config/config.js';
 
@@ -13,7 +17,9 @@ function validateRegisterInput({ username, email, password }) {
     throw new BadRequestError('Username, email, and password are required');
   }
   if (password.length < MIN_PASSWORD_LENGTH) {
-    throw new BadRequestError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long`);
+    throw new BadRequestError(
+      `Password must be at least ${MIN_PASSWORD_LENGTH} characters long`,
+    );
   }
 }
 
@@ -38,11 +44,9 @@ export class AuthController {
   }
 
   #createToken(userId, username) {
-    return jwt.sign(
-      { userId, username },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRY || '7d' }
-    );
+    return jwt.sign({ userId, username }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRY || '7d',
+    });
   }
 
   #hashToken(token) {
@@ -57,7 +61,10 @@ export class AuthController {
 
       const existingUser = await this.userModel.findOne({ username, email });
       if (existingUser) {
-        const isSameUsername = existingUser.username.localeCompare(username, undefined, { sensitivity: 'base' }) === 0;
+        const isSameUsername =
+          existingUser.username.localeCompare(username, undefined, {
+            sensitivity: 'base',
+          }) === 0;
         const field = isSameUsername ? 'Username' : 'Email';
         throw new ConflictError(`${field} is already taken`);
       }
@@ -115,13 +122,18 @@ export class AuthController {
           resetExpires,
         });
 
-        // We don't await email sending to avoid blocking the response, 
+        // We don't await email sending to avoid blocking the response,
         // but in a real prod app we might use a queue.
-        sendResetPasswordEmail(user.email, resetToken, FRONTEND_URL).catch(console.error);
+        sendResetPasswordEmail(user.email, resetToken, FRONTEND_URL).catch(
+          console.error,
+        );
       }
 
       // Always return 200 to prevent account enumeration
-      res.json({ message: 'If an account exists for this email, you will receive a reset link shortly.' });
+      res.json({
+        message:
+          'If an account exists for this email, you will receive a reset link shortly.',
+      });
     } catch (error) {
       next(error);
     }
@@ -132,19 +144,24 @@ export class AuthController {
       const { token } = req.params;
       const { newPassword } = req.body;
 
+      if (!token) {
+        throw new BadRequestError('Reset token is required');
+      }
+
       if (!newPassword || newPassword.length < MIN_PASSWORD_LENGTH) {
-        throw new BadRequestError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long`);
+        throw new BadRequestError(
+          `Password must be at least ${MIN_PASSWORD_LENGTH} characters long`,
+        );
       }
 
       const hashedToken = this.#hashToken(token);
-      
-      // We need to find the user by token and ensure it hasn't expired.
-      // Since our model doesn't have a direct method for this, we'll use findByEmail logic
-      // but findByToken would be better. Let's add findByResetToken to UserModel.
+
       const user = await this.userModel.findByResetToken(hashedToken);
-      
+
       if (!user || user.resetPasswordExpires < Date.now()) {
-        throw new BadRequestError('Password reset token is invalid or has expired');
+        throw new BadRequestError(
+          'Password reset token is invalid or has expired',
+        );
       }
 
       const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
