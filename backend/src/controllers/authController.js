@@ -45,7 +45,7 @@ export class AuthController {
 
   #createToken(userId, username) {
     return jwt.sign({ userId, username }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRY || '7d',
+      expiresIn: process.env.JWT_EXPIRY || '1d',
     });
   }
 
