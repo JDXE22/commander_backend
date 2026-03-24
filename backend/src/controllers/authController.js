@@ -3,8 +3,7 @@ import { ConflictError, UnauthorizedError, BadRequestError } from '../utils/erro
 import { sendResetPasswordEmail } from '../utils/email.js';
 import { FRONTEND_URL } from '../config/config.js';
 import { createToken, hashToken, generateRandomToken } from '../utils/auth.js';
-
-const SALT_ROUNDS = 10;
+import { SALT_ROUNDS, RESET_PASSWORD_TOKEN_EXPIRY_MS } from '../config/constants.js';
 
 function formatAuthResponse(user, token) {
   return {
@@ -72,7 +71,7 @@ export class AuthController {
       if (user) {
         const resetToken = generateRandomToken();
         const hashedToken = hashToken(resetToken);
-        const resetExpires = Date.now() + 3600000; // 1 hour
+        const resetExpires = Date.now() + RESET_PASSWORD_TOKEN_EXPIRY_MS;
 
         await this.userModel.updateResetFields(user._id, {
           resetToken: hashedToken,
@@ -96,7 +95,8 @@ export class AuthController {
       const hashedToken = hashToken(token);
       const user = await this.userModel.findByResetToken(hashedToken);
       
-      if (!user || user.resetPasswordExpires < Date.now()) {
+      const isInvalidToken = !user || user.resetPasswordExpires < Date.now();
+      if (isInvalidToken) {
         throw new BadRequestError('Password reset token is invalid or has expired');
       }
 

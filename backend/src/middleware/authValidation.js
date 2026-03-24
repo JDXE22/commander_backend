@@ -1,6 +1,5 @@
 import { BadRequestError } from '../utils/errors.js';
-
-const MIN_PASSWORD_LENGTH = 8;
+import { MIN_PASSWORD_LENGTH } from '../config/constants.js';
 
 export const validateRegisterInput = (req, res, next) => {
   const { username, email, password } = req.body;
