@@ -28,7 +28,8 @@ export const sendEmail = async ({ to, subject, html }) => {
 };
 
 export const sendResetPasswordEmail = async (email, token, frontendUrl) => {
-  const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+  const baseUrl = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
+  const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
 
   const html = `
     <h1>Password Reset Request</h1>
