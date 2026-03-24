@@ -15,17 +15,34 @@ export const SMTP_CONFIG = {
 
 export const validateSmtpConfig = () => {
   const { host, port, auth } = SMTP_CONFIG;
-  const missing = [];
 
-  if (!host) missing.push('SMTP_HOST');
-  if (!port || isNaN(port)) missing.push('SMTP_PORT (must be a valid number)');
-  if (!auth.user) missing.push('SMTP_USER');
-  if (!auth.pass) missing.push('SMTP_PASS');
+  const rules = [
+    { 
+      isValid: !!host, 
+      label: 'SMTP_HOST' 
+    },
+    { 
+      isValid: port && !isNaN(port), 
+      label: 'SMTP_PORT (valid number)' 
+    },
+    { 
+      isValid: !!auth.user, 
+      label: 'SMTP_USER' 
+    },
+    { 
+      isValid: !!auth.pass, 
+      label: 'SMTP_PASS' 
+    },
+  ];
 
-  if (missing.length > 0) {
+  const missingFields = rules
+    .filter((rule) => !rule.isValid)
+    .map((rule) => rule.label);
+
+  if (missingFields.length > 0) {
     throw new AppError(
       500,
-      `SMTP configuration is incomplete or invalid. Missing: ${missing.join(', ')}`,
+      `SMTP configuration is incomplete or invalid. Missing: ${missingFields.join(', ')}`,
       'SMTP_CONFIG_ERROR',
     );
   }
