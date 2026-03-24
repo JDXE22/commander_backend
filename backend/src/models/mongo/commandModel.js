@@ -28,8 +28,17 @@ const commandMongooseModel = mongoose.model(
   'commands',
 );
 connect();
+
+/**
+ * Builds a Mongoose filter object.
+ * userId is only included when defined — omitting it preserves v1 semantics
+ * (query all commands) while v2 scopes results to the authenticated user.
+ */
+const buildFilter = (base = {}, userId) =>
+  userId !== undefined ? { ...base, userId } : base;
+
 export class CommandModel {
-  getAll = async ({ query }) => {
+  getAll = async ({ userId, query }) => {
     const { limit, page } = query;
 
     const parsedLimit = parseInt(limit);
@@ -39,11 +48,14 @@ export class CommandModel {
       !isNaN(parsedLimit) && parsedLimit > 0 ? parsedLimit : 5;
     const currentPage = !isNaN(parsedPage) && parsedPage > 0 ? parsedPage : 1;
     const skip = (currentPage - 1) * currentLimit;
+
+    const filter = buildFilter({}, userId);
+
     const result = await commandMongooseModel
-      .find()
+      .find(filter)
       .skip(skip)
       .limit(currentLimit);
-    const total = await commandMongooseModel.countDocuments();
+    const total = await commandMongooseModel.countDocuments(filter);
     const totalPages = Math.ceil(total / currentLimit);
 
     return {
@@ -52,32 +64,37 @@ export class CommandModel {
     };
   };
 
-  getById = async ({ id }) => {
-    return commandMongooseModel.findById(id);
+  getById = async ({ id, userId }) => {
+    return commandMongooseModel.findOne(buildFilter({ _id: id }, userId));
   };
 
-  getByCommand = async ({ command }) => {
-    const result = await commandMongooseModel.findOne({ command });
+  getByCommand = async ({ command, userId }) => {
+    const result = await commandMongooseModel.findOne(
+      buildFilter({ command }, userId),
+    );
     return result ?? null;
   };
 
-  createCommand = async ({ input }) => {
-    const commandExists = await commandMongooseModel.findOne({
-      command: input.command,
-    });
+  createCommand = async ({ input, userId }) => {
+    const ownerFilter = buildFilter({ command: input.command }, userId);
+
+    const commandExists = await commandMongooseModel.findOne(ownerFilter);
 
     if (commandExists) {
-      throw new ConflictError('A command with this trigger already exists');
+      throw new ConflictError('A command with this trigger already exists for this user');
     }
 
-    const command = new commandMongooseModel(input);
+    const doc = userId !== undefined ? { ...input, userId } : { ...input };
+    const command = new commandMongooseModel(doc);
     return command.save();
   };
 
-  updateCommand = async ({ id, input }) => {
-    const updated = await commandMongooseModel.findByIdAndUpdate(id, input, {
-      new: true,
-    });
+  updateCommand = async ({ id, input, userId }) => {
+    const updated = await commandMongooseModel.findOneAndUpdate(
+      buildFilter({ _id: id }, userId),
+      input,
+      { new: true },
+    );
 
     if (!updated) {
       throw new NotFoundError('Command');
@@ -86,8 +103,10 @@ export class CommandModel {
     return updated;
   };
 
-  delete = async ({ id }) => {
-    const deleted = await commandMongooseModel.findByIdAndDelete(id);
+  delete = async ({ id, userId }) => {
+    const deleted = await commandMongooseModel.findOneAndDelete(
+      buildFilter({ _id: id }, userId),
+    );
 
     if (!deleted) {
       throw new NotFoundError('Command');

@@ -1,6 +1,6 @@
 import express from 'express';
 import 'dotenv/config';
-import { commandRouter, healthRouter } from './router/router.js';
+import { createRouter } from './router/router.js';
 import { errorHandler } from './utils/errors.js';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
@@ -15,7 +15,7 @@ const requestLogger = (req, res, next) => {
   next();
 };
 
-export const createApp = ({ commandModel }) => {
+export const createApp = ({ commandModel, userModel }) => {
   const app = express();
 
   app.use(cors());
@@ -25,8 +25,7 @@ export const createApp = ({ commandModel }) => {
 
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-  app.use('/api/health', healthRouter());
-  app.use('/api/commands', commandRouter({ commandModel }));
+  app.use('/api', createRouter({ commandModel, userModel }));
 
   app.use(errorHandler);
 

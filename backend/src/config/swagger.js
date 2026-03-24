@@ -1,21 +1,73 @@
 import swaggerJsdoc from 'swagger-jsdoc';
-import { PORT } from './config.js';
 
 const swaggerDefinition = {
   openapi: '3.0.0',
   info: {
     title: 'Commander API',
-    version: '1.0.0',
+    version: '2.0.0',
     description:
-      'API for managing command-driven snippets. Generated from JSDoc comments.',
+      'API for managing command-driven snippets with user authentication and data isolation.',
   },
   servers: [
     {
-      url: `http://localhost:${PORT}`,
+      url: '/',
+      description: 'Local development server',
     },
   ],
   components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Enter JWT token generated via /api/v2/auth/login',
+      },
+    },
     schemas: {
+      User: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string' },
+          username: { type: 'string' },
+          email: { type: 'string' },
+          tier: { type: 'string', enum: ['free', 'pro', 'enterprise'] },
+          isActive: { type: 'boolean' },
+        },
+      },
+      AuthResponse: {
+        type: 'object',
+        properties: {
+          userId: { type: 'string' },
+          username: { type: 'string' },
+          email: { type: 'string' },
+          token: { type: 'string' },
+        },
+      },
+      RegisterInput: {
+        type: 'object',
+        required: ['username', 'email', 'password'],
+        properties: {
+          username: { type: 'string', example: 'newuser' },
+          email: { type: 'string', example: 'user@example.com' },
+          password: {
+            type: 'string',
+            example: 'SecretPass123!',
+            format: 'password',
+          },
+        },
+      },
+      LoginInput: {
+        type: 'object',
+        required: ['username', 'password'],
+        properties: {
+          username: { type: 'string', example: 'newuser' },
+          password: {
+            type: 'string',
+            example: 'SecretPass123!',
+            format: 'password',
+          },
+        },
+      },
       Command: {
         type: 'object',
         required: ['name', 'command', 'text'],
@@ -23,71 +75,47 @@ const swaggerDefinition = {
           _id: {
             type: 'string',
             description: 'Unique identifier of the command',
-            example: '681e68820ce3d72ad1ab36ed',
           },
-          name: {
-            type: 'string',
-            description: 'Human-readable name of the command',
-            example: 'Greeting',
-          },
-          command: {
-            type: 'string',
-            description: 'Command trigger that starts with a slash',
-            example: '/hi1',
-          },
-          text: {
-            type: 'string',
-            description: 'Text response returned when the command is used',
-            example: 'Hello, welcome to our service!',
-          },
+          name: { type: 'string', example: 'Greeting' },
+          command: { type: 'string', example: '/hi1' },
+          text: { type: 'string', example: 'Hello, welcome to our service!' },
+          userId: { type: 'string', description: 'ID of the owner user' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
         },
       },
       CommandCreateInput: {
         type: 'object',
         required: ['name', 'command', 'text'],
         properties: {
-          name: {
-            type: 'string',
-            example: 'Greeting',
-          },
-          command: {
-            type: 'string',
-            example: '/hi1',
-          },
-          text: {
-            type: 'string',
-            example: 'Hello, welcome to our service!',
-          },
+          name: { type: 'string', example: 'Greeting' },
+          command: { type: 'string', example: '/hi1' },
+          text: { type: 'string', example: 'Hello, welcome to our service!' },
         },
       },
       CommandUpdateInput: {
         type: 'object',
         properties: {
-          name: {
-            type: 'string',
-            example: 'Updated greeting',
-          },
-          command: {
-            type: 'string',
-            example: '/hi2',
-          },
-          text: {
-            type: 'string',
-            example: 'Hi there, good to see you again!',
-          },
+          name: { type: 'string' },
+          command: { type: 'string' },
+          text: { type: 'string' },
         },
       },
       ErrorResponse: {
         type: 'object',
         properties: {
-          error: {
-            type: 'string',
-            example: 'resource not found',
+          error: { type: 'string', example: 'resource not found' },
+          message: { type: 'string' },
+        },
+      },
+      CommandsPage: {
+        type: 'object',
+        properties: {
+          commands: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/Command' },
           },
-          message: {
-            type: 'string',
-            example: 'Validation failed',
-          },
+          totalPages: { type: 'integer', example: 4 },
         },
       },
       DeleteResponse: {
@@ -105,7 +133,8 @@ const swaggerDefinition = {
 
 const swaggerOptions = {
   swaggerDefinition,
-  apis: ['./src/router/*.js'],
+  // Scan for all JSDoc comments in the src directory and its subdirectories
+  apis: ['./src/**/*.js'],
 };
 
 export const swaggerSpec = swaggerJsdoc(swaggerOptions);

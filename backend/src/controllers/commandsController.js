@@ -7,7 +7,10 @@ export class CommandController {
 
   getAll = async (req, res, next) => {
     try {
-      const commands = await this.commandModel.getAll({ query: req.query });
+      const commands = await this.commandModel.getAll({
+        userId: req.user?.userId,
+        query: req.query,
+      });
       res.json(commands);
     } catch (error) {
       next(error);
@@ -26,7 +29,10 @@ export class CommandController {
         throw error;
       }
 
-      const result = await this.commandModel.getByCommand({ command });
+      const result = await this.commandModel.getByCommand({
+        command,
+        userId: req.user?.userId,
+      });
 
       if (!result) return next(new NotFoundError('Command'));
 
@@ -39,10 +45,13 @@ export class CommandController {
   getById = async (req, res, next) => {
     try {
       const { id } = req.params;
-      const commandData = await this.commandModel.getById({ id });
+      const command = await this.commandModel.getById({
+        id,
+        userId: req.user?.userId,
+      });
 
-      if (!commandData) return next(new NotFoundError('Command'));
-      res.json(commandData);
+      if (!command) return next(new NotFoundError('Command'));
+      res.json(command);
     } catch (error) {
       next(error);
     }
@@ -50,10 +59,11 @@ export class CommandController {
 
   create = async (req, res, next) => {
     try {
-      const commandData = await this.commandModel.createCommand({
+      const command = await this.commandModel.createCommand({
         input: req.body,
+        userId: req.user?.userId,
       });
-      res.status(201).json(commandData);
+      res.status(201).json(command);
     } catch (error) {
       next(error);
     }
@@ -62,16 +72,28 @@ export class CommandController {
   update = async (req, res, next) => {
     try {
       const { id } = req.params;
-      const body = req.body;
+      const { body } = req;
 
       if (Object.keys(body).length === 0)
         return next(new BadRequestError('Request body is empty'));
 
-      const updatedData = await this.commandModel.updateCommand({
+      const {
+        userId: _u,
+        _id: _i,
+        createdAt: _c,
+        updatedAt: _d,
+        ...safeInput
+      } = body;
+
+      if (Object.keys(safeInput).length === 0)
+        return next(new BadRequestError('No updatable fields provided'));
+
+      const updatedCommand = await this.commandModel.updateCommand({
         id,
-        input: body,
+        input: safeInput,
+        userId: req.user?.userId,
       });
-      return res.json(updatedData);
+      return res.json(updatedCommand);
     } catch (error) {
       next(error);
     }
@@ -80,7 +102,10 @@ export class CommandController {
   delete = async (req, res, next) => {
     try {
       const { id } = req.params;
-      const result = await this.commandModel.delete({ id });
+      const result = await this.commandModel.delete({
+        id,
+        userId: req.user?.userId,
+      });
       return res.json(result);
     } catch (error) {
       next(error);
