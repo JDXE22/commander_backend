@@ -1,7 +1,19 @@
 import nodemailer from 'nodemailer';
-import { SMTP_CONFIG, EMAIL_FROM } from '../config/config.js';
+import {
+  SMTP_CONFIG,
+  EMAIL_FROM,
+  validateSmtpConfig,
+} from '../config/config.js';
 
-const transporter = nodemailer.createTransport(SMTP_CONFIG);
+let transporter = null;
+
+const getTransporter = () => {
+  if (!transporter) {
+    validateSmtpConfig();
+    transporter = nodemailer.createTransport(SMTP_CONFIG);
+  }
+  return transporter;
+};
 
 export const sendEmail = async ({ to, subject, html }) => {
   const mailOptions = {
@@ -11,12 +23,14 @@ export const sendEmail = async ({ to, subject, html }) => {
     html,
   };
 
-  return transporter.sendMail(mailOptions);
+  const currentTransporter = getTransporter();
+  return currentTransporter.sendMail(mailOptions);
 };
 
 export const sendResetPasswordEmail = async (email, token, frontendUrl) => {
-  const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
-  
+  const baseUrl = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
+  const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+
   const html = `
     <h1>Password Reset Request</h1>
     <p>You requested a password reset. Please click the link below to reset your password:</p>
