@@ -35,3 +35,14 @@ export const validateResetPasswordInput = (req, res, next) => {
   }
   next();
 };
+
+export const validateResetPasswordBodyInput = (req, res, next) => {
+  const { token, newPassword } = req.body;
+  if (!token) {
+    throw new BadRequestError('Token is required');
+  }
+  if (!newPassword || newPassword.length < MIN_PASSWORD_LENGTH) {
+    throw new BadRequestError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long`);
+  }
+  next();
+};

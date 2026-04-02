@@ -103,7 +103,8 @@ The API is versioned. v1 is maintained for backward compatibility, while v2 requ
 | `POST` | `/api/v2/auth/register`              | Register a new user account.             |
 | `POST` | `/api/v2/auth/login`                 | Authenticate and receive JWT.            |
 | `POST` | `/api/v2/auth/forgot-password`       | Request a password reset link via email. |
-| `POST` | `/api/v2/auth/reset-password/:token` | Reset password using a valid token.      |
+| `POST` | `/api/v2/auth/reset-password/:token` | Reset password using a valid token (URL param). |
+| `POST` | `/api/v2/auth/password-resets`       | Reset password using a token in the request body. |
 
 ### Commands
 

@@ -8,7 +8,8 @@ import {
   validateRegisterInput, 
   validateLoginInput, 
   validateForgotPasswordInput, 
-  validateResetPasswordInput 
+  validateResetPasswordInput,
+  validateResetPasswordBodyInput
 } from '../middleware/authValidation.js';
 
 /**
@@ -157,6 +158,47 @@ export const createRouter = ({ commandModel, userModel }) => {
      *         description: Invalid token or password.
      */
     v2AuthRouter.post('/reset-password/:token', validateResetPasswordInput, authController.resetPassword);
+
+    /**
+     * @openapi
+     * /api/v2/auth/password-resets:
+     *   post:
+     *     summary: Reset password using token in body
+     *     description: New endpoint for non-logged in users following RESTful naming (no verbs) and providing token in body for better security.
+     *     tags: [Auth]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - token
+     *               - newPassword
+     *             properties:
+     *               token:
+     *                 type: string
+     *               newPassword:
+     *                 type: string
+     *                 minLength: 8
+     *     responses:
+     *       200:
+     *         description: Password reset successful.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     message:
+     *                       type: string
+     *                 error:
+     *                   type: object
+     *                   nullable: true
+     */
+    v2AuthRouter.post('/password-resets', validateResetPasswordBodyInput, authController.resetPasswordWithBody);
 
     rootRouter.use('/v2/auth', v2AuthRouter);
   }

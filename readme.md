@@ -8,7 +8,7 @@ Starting with **v2**, it supports multi-user data ownership, allowing users to p
 
 - **Multi-user Support (v2)**: Private command namespaces per user.
 - **Authentication**: Secure registration and login using JWT (JSON Web Tokens).
-- **Password Recovery**: Integrated "Forgot Password" flow via email.
+- **Password Recovery**: Integrated "Forgot Password" flow via email with REST-compliant token validation.
 - **API Versioning**: Coexistence of v1 (legacy shared) and v2 (authenticated) routes.
 - **Command Management**: Create, read, update, and delete command snippets.
 - **Trigger Resolution**: Resolve a snippet by trigger through `/api/v2/commands?trigger=...`.
