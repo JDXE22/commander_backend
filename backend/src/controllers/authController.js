@@ -129,4 +129,35 @@ export class AuthController {
       next(error);
     }
   };
+
+  resetPasswordWithBody = async (req, res, next) => {
+    try {
+      const { token, newPassword } = req.body;
+
+      if (!token || typeof token !== 'string' || token.trim() === '') {
+        throw new BadRequestError('Password reset token is required');
+      }
+
+      const hashedToken = hashToken(token);
+      const user = await this.userModel.findByResetToken(hashedToken);
+
+      const isInvalidToken = !user || user.resetPasswordExpires < Date.now();
+      if (isInvalidToken) {
+        throw new BadRequestError(
+          'Password reset token is invalid or has expired',
+        );
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+      await this.userModel.updatePassword(user._id, passwordHash);
+
+      // Following api-design-principles: { data, error, meta }
+      res.json({
+        data: { message: 'Password has been reset successfully' },
+        error: null,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
