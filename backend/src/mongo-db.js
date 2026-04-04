@@ -1,3 +1,6 @@
+import { setDefaultResultOrder } from 'dns';
+setDefaultResultOrder('ipv4first');
+
 import { createApp } from './app.js';
 import { CommandModel } from './models/mongo/commandModel.js';
 import { UserModel } from './models/mongo/userModel.js';

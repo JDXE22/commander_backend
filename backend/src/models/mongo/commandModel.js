@@ -19,6 +19,7 @@ async function connect() {
     console.error('Error connecting to the database');
     console.error(error);
     await mongoose.disconnect();
+    process.exit(1);
   }
 }
 
