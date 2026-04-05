@@ -4,10 +4,12 @@ import { AppError } from '../utils/errors.js';
 export const PORT = process.env.PORT;
 export const URL = process.env.DATABASE_URL;
 
+const smtpPort = parseInt(process.env.SMTP_PORT, 10);
+
 export const SMTP_CONFIG = {
   host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT, 10),
-  family: 4,
+  port: smtpPort,
+  secure: smtpPort === 465,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
