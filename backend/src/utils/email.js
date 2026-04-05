@@ -1,10 +1,25 @@
-import { Resend } from 'resend';
-import { EMAIL_FROM } from '../config/config.js';
+import nodemailer from 'nodemailer';
+import { SMTP_CONFIG, EMAIL_FROM, validateSmtpConfig } from '../config/config.js';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let transporter = null;
+
+const getTransporter = () => {
+  validateSmtpConfig();
+  if (!transporter) {
+    transporter = nodemailer.createTransport(SMTP_CONFIG);
+  }
+  return transporter;
+};
 
 export const sendEmail = async ({ to, subject, html }) => {
-  return resend.emails.send({ from: EMAIL_FROM, to, subject, html });
+  const mailOptions = {
+    from: EMAIL_FROM,
+    to,
+    subject,
+    html,
+  };
+
+  return getTransporter().sendMail(mailOptions);
 };
 
 export const sendResetPasswordEmail = async (email, token, frontendUrl) => {
