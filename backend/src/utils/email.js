@@ -20,26 +20,37 @@ const getTransporter = () => {
   }
 };
 
-export const sendEmail = async ({ to, subject, html }) => {
-  try {
-    const mailOptions = {
-      from: EMAIL_FROM,
-      to,
-      subject,
-      html,
-    };
+export const sendEmail = ({ to, subject, html }) => {
+  const mailOptions = {
+    from: EMAIL_FROM,
+    to,
+    subject,
+    html,
+  };
 
-    return await getTransporter().sendMail(mailOptions);
-  } catch (error) {
-    console.error('Failed to send email:', error.message);
-    throw error;
-  }
+  return new Promise((resolve, reject) => {
+    try {
+      getTransporter().sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Failed to send email:', error.message);
+          reject(error);
+        } else {
+          resolve(info);
+        }
+      });
+    } catch (error) {
+      console.error('Failed to send email:', error.message);
+      reject(error);
+    }
+  });
 };
 
-export const sendResetPasswordEmail = async (email, token, frontendUrl) => {
+export const sendResetPasswordEmail = (email, token, frontendUrl) => {
   if (typeof frontendUrl !== 'string' || frontendUrl.trim() === '') {
-    throw new Error(
-      'frontendUrl must be a non-empty string when sending a reset password email',
+    return Promise.reject(
+      new Error(
+        'frontendUrl must be a non-empty string when sending a reset password email',
+      ),
     );
   }
 
