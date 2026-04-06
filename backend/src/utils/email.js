@@ -1,25 +1,39 @@
 import nodemailer from 'nodemailer';
-import { SMTP_CONFIG, EMAIL_FROM, validateSmtpConfig } from '../config/config.js';
+import {
+  SMTP_CONFIG,
+  EMAIL_FROM,
+  validateSmtpConfig,
+} from '../config/config.js';
 
 let transporter = null;
 
 const getTransporter = () => {
-  validateSmtpConfig();
-  if (!transporter) {
-    transporter = nodemailer.createTransport(SMTP_CONFIG);
+  try {
+    validateSmtpConfig();
+    if (!transporter) {
+      transporter = nodemailer.createTransport(SMTP_CONFIG);
+    }
+    return transporter;
+  } catch (error) {
+    console.error('Failed to create email transporter:', error.message);
+    throw error;
   }
-  return transporter;
 };
 
 export const sendEmail = async ({ to, subject, html }) => {
-  const mailOptions = {
-    from: EMAIL_FROM,
-    to,
-    subject,
-    html,
-  };
+  try {
+    const mailOptions = {
+      from: EMAIL_FROM,
+      to,
+      subject,
+      html,
+    };
 
-  return getTransporter().sendMail(mailOptions);
+    return await getTransporter().sendMail(mailOptions);
+  } catch (error) {
+    console.error('Failed to send email:', error.message);
+    throw error;
+  }
 };
 
 export const sendResetPasswordEmail = async (email, token, frontendUrl) => {
