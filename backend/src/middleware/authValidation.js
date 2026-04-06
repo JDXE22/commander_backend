@@ -13,9 +13,9 @@ export const validateRegisterInput = (req, res, next) => {
 };
 
 export const validateLoginInput = (req, res, next) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    throw new BadRequestError('Username and password are required');
+  const { email, password } = req.body;
+  if (!email || !password) {
+    throw new BadRequestError('Email and password are required');
   }
   next();
 };

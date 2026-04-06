@@ -54,16 +54,16 @@ export class AuthController {
 
   login = async (req, res, next) => {
     try {
-      const { username, password } = req.body;
+      const { email, password } = req.body;
 
-      const user = await this.userModel.findOne({ username });
+      const user = await this.userModel.findOne({ email });
       if (!user) {
-        throw new UnauthorizedError('Invalid username or password');
+        throw new UnauthorizedError('Invalid email or password');
       }
 
       const isValidPassword = await bcrypt.compare(password, user.passwordHash);
       if (!isValidPassword) {
-        throw new UnauthorizedError('Invalid username or password');
+        throw new UnauthorizedError('Invalid email or password');
       }
 
       const token = createToken(user._id, user.username);
