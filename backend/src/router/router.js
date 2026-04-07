@@ -4,12 +4,12 @@ import { AuthController } from '../controllers/authController.js';
 import { getHealth } from '../controllers/healthController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { byTrigger } from '../middleware/triggerMiddleware.js';
-import { 
-  validateRegisterInput, 
-  validateLoginInput, 
-  validateForgotPasswordInput, 
+import {
+  validateRegisterInput,
+  validateLoginInput,
+  validateForgotPasswordInput,
   validateResetPasswordInput,
-  validateResetPasswordBodyInput
+  validateResetPasswordBodyInput,
 } from '../middleware/authValidation.js';
 
 /**
@@ -74,7 +74,11 @@ export const createRouter = ({ commandModel, userModel }) => {
      *       400:
      *         description: Bad request.
      */
-    v2AuthRouter.post('/register', validateRegisterInput, authController.register);
+    v2AuthRouter.post(
+      '/register',
+      validateRegisterInput,
+      authController.register,
+    );
 
     /**
      * @openapi
@@ -136,7 +140,11 @@ export const createRouter = ({ commandModel, userModel }) => {
      *                 message:
      *                   type: string
      */
-    v2AuthRouter.post('/forgot-password', validateForgotPasswordInput, authController.forgotPassword);
+    v2AuthRouter.post(
+      '/forgot-password',
+      validateForgotPasswordInput,
+      authController.forgotPassword,
+    );
 
     /**
      * @openapi
@@ -166,7 +174,11 @@ export const createRouter = ({ commandModel, userModel }) => {
      *       400:
      *         description: Invalid token or password.
      */
-    v2AuthRouter.post('/reset-password/:token', validateResetPasswordInput, authController.resetPassword);
+    v2AuthRouter.post(
+      '/reset-password/:token',
+      validateResetPasswordInput,
+      authController.resetPassword,
+    );
 
     /**
      * @openapi
@@ -198,16 +210,16 @@ export const createRouter = ({ commandModel, userModel }) => {
      *             schema:
      *               type: object
      *               properties:
-     *                 data:
-     *                   type: object
-     *                   properties:
-     *                     message:
-     *                       type: string
-     *                 error:
-     *                   type: object
-     *                   nullable: true
+     *                 message:
+     *                   type: string
+     *       400:
+     *         description: Invalid token or password.
      */
-    v2AuthRouter.post('/password-resets', validateResetPasswordBodyInput, authController.resetPasswordWithBody);
+    v2AuthRouter.post(
+      '/password-resets',
+      validateResetPasswordBodyInput,
+      authController.resetPasswordWithBody,
+    );
 
     rootRouter.use('/v2/auth', v2AuthRouter);
   }

@@ -5,6 +5,7 @@ import {
   BadRequestError,
 } from '../utils/errors.js';
 import { sendResetPasswordEmail } from '../utils/email.js';
+import { performPasswordReset } from '../utils/passwordReset.js';
 import { FRONTEND_URL } from '../config/config.js';
 import { createToken, hashToken, generateRandomToken } from '../utils/auth.js';
 import {
@@ -106,24 +107,7 @@ export class AuthController {
     try {
       const { token } = req.params;
       const { newPassword } = req.body;
-
-      if (!token || typeof token !== 'string' || token.trim() === '') {
-        throw new BadRequestError('Password reset token is required');
-      }
-
-      const hashedToken = hashToken(token);
-      const user = await this.userModel.findByResetToken(hashedToken);
-
-      const isInvalidToken = !user || user.resetPasswordExpires < Date.now();
-      if (isInvalidToken) {
-        throw new BadRequestError(
-          'Password reset token is invalid or has expired',
-        );
-      }
-
-      const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
-      await this.userModel.updatePassword(user._id, passwordHash);
-
+      await performPasswordReset(token, newPassword, this.userModel);
       res.json({ message: 'Password has been reset successfully' });
     } catch (error) {
       next(error);
@@ -133,29 +117,8 @@ export class AuthController {
   resetPasswordWithBody = async (req, res, next) => {
     try {
       const { token, newPassword } = req.body;
-
-      if (!token || typeof token !== 'string' || token.trim() === '') {
-        throw new BadRequestError('Password reset token is required');
-      }
-
-      const hashedToken = hashToken(token);
-      const user = await this.userModel.findByResetToken(hashedToken);
-
-      const isInvalidToken = !user || user.resetPasswordExpires < Date.now();
-      if (isInvalidToken) {
-        throw new BadRequestError(
-          'Password reset token is invalid or has expired',
-        );
-      }
-
-      const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
-      await this.userModel.updatePassword(user._id, passwordHash);
-
-      // Following api-design-principles: { data, error, meta }
-      res.json({
-        data: { message: 'Password has been reset successfully' },
-        error: null,
-      });
+      await performPasswordReset(token, newPassword, this.userModel);
+      res.json({ message: 'Password has been reset successfully' });
     } catch (error) {
       next(error);
     }
