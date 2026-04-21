@@ -19,24 +19,24 @@ export class CommandController {
 
   getByCommand = async (req, res, next) => {
     try {
-      let command;
+      let decodedCommand;
       try {
-        command = decodeURIComponent(req.query.trigger);
-      } catch (error) {
-        if (error instanceof URIError) {
+        decodedCommand = decodeURIComponent(req.query.trigger);
+      } catch (encodingError) {
+        if (encodingError instanceof URIError) {
           throw new BadRequestError('Invalid percent-encoding in query');
         }
-        throw error;
+        throw encodingError;
       }
 
-      const result = await this.commandModel.getByCommand({
-        command,
+      const commandResult = await this.commandModel.getByCommand({
+        command: decodedCommand,
         userId: req.user?.userId,
       });
 
-      if (!result) return next(new NotFoundError('Command'));
+      if (!commandResult) return next(new NotFoundError('Command'));
 
-      return res.json(result);
+      return res.json(commandResult);
     } catch (error) {
       next(error);
     }
@@ -72,25 +72,25 @@ export class CommandController {
   update = async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { body } = req;
+      const { body: requestBody } = req;
 
-      if (Object.keys(body).length === 0)
+      if (Object.keys(requestBody).length === 0)
         return next(new BadRequestError('Request body is empty'));
 
       const {
-        userId: _u,
-        _id: _i,
-        createdAt: _c,
-        updatedAt: _d,
-        ...safeInput
-      } = body;
+        userId: _userId,
+        _id: _documentId,
+        createdAt: _createdDate,
+        updatedAt: _updatedDate,
+        ...safeInputFields
+      } = requestBody;
 
-      if (Object.keys(safeInput).length === 0)
+      if (Object.keys(safeInputFields).length === 0)
         return next(new BadRequestError('No updatable fields provided'));
 
       const updatedCommand = await this.commandModel.updateCommand({
         id,
-        input: safeInput,
+        input: safeInputFields,
         userId: req.user?.userId,
       });
       return res.json(updatedCommand);
@@ -107,6 +107,30 @@ export class CommandController {
         userId: req.user?.userId,
       });
       return res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  search = async (req, res, next) => {
+    try {
+      const { q: searchQuery, limit: resultLimit } = req.query;
+
+      if (!searchQuery) {
+        return next(
+          new BadRequestError(
+            "Query parameter 'q' is required and must be a non-empty string",
+          ),
+        );
+      }
+
+      const searchResults = await this.commandModel.searchTemplates({
+        userId: req.user?.userId,
+        query: searchQuery,
+        limit: resultLimit,
+      });
+
+      return res.json(searchResults);
     } catch (error) {
       next(error);
     }

@@ -35,3 +35,60 @@ Content-Type: application/json
 DELETE http://localhost:{PORT}/api/commands/67fe9cb7e071a32a40d2076e
 
 
+### V2 Auth - Register User
+POST http://localhost:{PORT}/api/v2/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "SecurePass123",
+  "username": "testuser"
+}
+
+### V2 Auth - Login
+POST http://localhost:3015/api/v2/auth/login
+Content-Type: application/json
+
+{
+  "email": "davidesparzac59@gmail.com",
+  "password": "NewSecurePassword123!"
+}
+
+### V2 Commands - Create Template
+POST http://localhost:{PORT}/api/v2/commands
+Content-Type: application/json
+Authorization: Bearer <JWT_TOKEN_HERE>
+
+{
+  "name": "Welcome Greeting",
+  "command": "/hi1",
+  "text": "Hi there, welcome to the channel!"
+}
+
+### V2 Commands - Create Another Template
+POST http://localhost:{PORT}/api/v2/commands
+Content-Type: application/json
+Authorization: Bearer <JWT_TOKEN_HERE>
+
+{
+  "name": "Hello Template",
+  "command": "/hi2",
+  "text": "Hello and welcome to the server"
+}
+
+### V2 Search - Command Search (Prioritized)
+GET http://localhost:{PORT}/api/v2/commands/search?q=/hi&limit=8
+Authorization: Bearer <JWT_TOKEN_HERE>
+
+### V2 Search - Keyword Search
+GET http://localhost:{PORT}/api/v2/commands/search?q=welcome&limit=5
+Authorization: Bearer <JWT_TOKEN_HERE>
+
+### V2 Search - Edge Case: Just Slash
+GET http://localhost:{PORT}/api/v2/commands/search?q=/&limit=8
+Authorization: Bearer <JWT_TOKEN_HERE>
+
+### V2 Search - No Results
+GET http://localhost:{PORT}/api/v2/commands/search?q=nonexistent&limit=8
+Authorization: Bearer <JWT_TOKEN_HERE>
+
