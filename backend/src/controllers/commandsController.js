@@ -114,7 +114,7 @@ export class CommandController {
 
   search = async (req, res, next) => {
     try {
-      const { q: searchQuery, limit: resultLimit } = req.query;
+      const { query: searchQuery, limit: resultLimit } = req.query;
 
       if (!searchQuery) {
         return next(

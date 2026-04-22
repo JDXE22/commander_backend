@@ -230,7 +230,6 @@ export class CommandModel {
     originalQuery,
     limit,
   ) => {
-    // Keep the leading slash because commandLower is stored with it (e.g. /hi1).
     const commandPrefix = queryLowercase;
 
     const exactMatches = await this.findExactCommandMatches(
