@@ -50,8 +50,8 @@ POST http://localhost:3015/api/v2/auth/login
 Content-Type: application/json
 
 {
-  "email": "davidesparzac59@gmail.com",
-  "password": "NewSecurePassword123!"
+  "email": "user@example.com",
+  "password": "new-password123"
 }
 
 ### V2 Commands - Create Template
