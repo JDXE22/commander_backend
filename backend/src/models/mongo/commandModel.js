@@ -230,7 +230,8 @@ export class CommandModel {
     originalQuery,
     limit,
   ) => {
-    const commandPrefix = queryLowercase.slice(1); // remove leading /
+    // Keep the leading slash because commandLower is stored with it (e.g. /hi1).
+    const commandPrefix = queryLowercase;
 
     const exactMatches = await this.findExactCommandMatches(
       baseFilter,
