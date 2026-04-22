@@ -305,6 +305,68 @@ export const createRouter = ({ commandModel, userModel }) => {
 
     /**
      * @openapi
+     * /api/v2/commands/search:
+     *   get:
+     *     summary: Search user-scoped templates
+     *     description: Search authenticated user's templates by keyword or command with case-insensitive matching.
+     *     security: [{ bearerAuth: [] }]
+     *     tags: [Commands v2]
+     *     parameters:
+     *       - in: query
+     *         name: q
+     *         required: true
+     *         schema:
+     *           type: string
+     *           minLength: 1
+     *           maxLength: 100
+     *         description: Search query (keyword or /command)
+     *       - in: query
+     *         name: limit
+     *         required: false
+     *         schema:
+     *           type: integer
+     *           minimum: 1
+     *           maximum: 20
+     *           default: 8
+     *         description: Maximum results to return
+     *     responses:
+     *       200:
+     *         description: List of matching templates for suggestions.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 query:
+     *                   type: string
+     *                 limit:
+     *                   type: integer
+     *                 total:
+     *                   type: integer
+     *                 templates:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       id:
+     *                         type: string
+     *                       name:
+     *                         type: string
+     *                       content:
+     *                         type: string
+     *                       command:
+     *                         type: string
+     *                       match:
+     *                         type: string
+     *       400:
+     *         description: Invalid query parameters
+     *       401:
+     *         description: Unauthorized
+     */
+    v2CommandsRouter.get('/search', commandController.search);
+
+    /**
+     * @openapi
      * /api/v2/commands/{id}:
      *   get:
      *     summary: Get v2 command by ID

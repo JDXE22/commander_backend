@@ -11,6 +11,7 @@ Starting with **v2**, it supports multi-user data ownership, allowing users to p
 - **Password Recovery**: Integrated "Forgot Password" flow via email with REST-compliant token validation.
 - **API Versioning**: Coexistence of v1 (legacy shared) and v2 (authenticated) routes.
 - **Command Management**: Create, read, update, and delete command snippets.
+- **Template Search (v2)**: Full-text search across user's templates by command or keyword with relevance ranking.
 - **Trigger Resolution**: Resolve a snippet by trigger through `/api/v2/commands?trigger=...`.
 - **Health Check**: Dedicated `/api/health` endpoint for monitoring.
 - **Swagger Documentation**: Interactive API docs available at `/api-docs`.
