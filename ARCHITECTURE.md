@@ -98,23 +98,24 @@ The API is versioned. v1 is maintained for backward compatibility, while v2 requ
 
 ### Authentication (v2)
 
-| Method | Route                                | Purpose                                  |
-| ------ | ------------------------------------ | ---------------------------------------- |
-| `POST` | `/api/v2/auth/register`              | Register a new user account.             |
-| `POST` | `/api/v2/auth/login`                 | Authenticate and receive JWT.            |
-| `POST` | `/api/v2/auth/forgot-password`       | Request a password reset link via email. |
-| `POST` | `/api/v2/auth/reset-password/:token` | Reset password using a valid token (URL param). |
+| Method | Route                                | Purpose                                           |
+| ------ | ------------------------------------ | ------------------------------------------------- |
+| `POST` | `/api/v2/auth/register`              | Register a new user account.                      |
+| `POST` | `/api/v2/auth/login`                 | Authenticate and receive JWT.                     |
+| `POST` | `/api/v2/auth/forgot-password`       | Request a password reset link via email.          |
+| `POST` | `/api/v2/auth/reset-password/:token` | Reset password using a valid token (URL param).   |
 | `POST` | `/api/v2/auth/password-resets`       | Reset password using a token in the request body. |
 
 ### Commands
 
-| Method   | v1 Route (Public)   | v2 Route (Auth Required) | Purpose              |
-| -------- | ------------------- | ------------------------ | -------------------- |
-| `GET`    | `/api/commands`     | `/api/v2/commands`       | List owned commands. |
-| `GET`    | `/api/commands/:id` | `/api/v2/commands/:id`   | Get command by ID.   |
-| `POST`   | `/api/commands`     | `/api/v2/commands`       | Create a command.    |
-| `PATCH`  | `/api/commands/:id` | `/api/v2/commands/:id`   | Update a command.    |
-| `DELETE` | `/api/commands/:id` | `/api/v2/commands/:id`   | Delete a command.    |
+| Method   | v1 Route (Public)   | v2 Route (Auth Required)  | Purpose                                              |
+| -------- | ------------------- | ------------------------- | ---------------------------------------------------- |
+| `GET`    | `/api/commands`     | `/api/v2/commands`        | List owned commands.                                 |
+| `GET`    | `/api/commands/:id` | `/api/v2/commands/:id`    | Get command by ID.                                   |
+| `GET`    | -                   | `/api/v2/commands/search` | Search templates by command or keyword with ranking. |
+| `POST`   | `/api/commands`     | `/api/v2/commands`        | Create a command.                                    |
+| `PATCH`  | `/api/commands/:id` | `/api/v2/commands/:id`    | Update a command.                                    |
+| `DELETE` | `/api/commands/:id` | `/api/v2/commands/:id`    | Delete a command.                                    |
 
 ## Configuration
 
