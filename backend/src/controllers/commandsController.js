@@ -114,9 +114,14 @@ export class CommandController {
 
   search = async (req, res, next) => {
     try {
-      const { query: searchQuery, limit: resultLimit } = req.query;
+      const {
+        query: searchQuery,
+        q: legacySearchQuery,
+        limit: resultLimit,
+      } = req.query;
+      const resolvedSearchQuery = searchQuery ?? legacySearchQuery;
 
-      if (!searchQuery) {
+      if (!resolvedSearchQuery) {
         return next(
           new BadRequestError(
             "Query parameter 'query' is required and must be a non-empty string",
@@ -126,7 +131,7 @@ export class CommandController {
 
       const searchResults = await this.commandModel.searchTemplates({
         userId: req.user?.userId,
-        query: searchQuery,
+        query: resolvedSearchQuery,
         limit: resultLimit,
       });
 
