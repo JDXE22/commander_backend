@@ -37,6 +37,9 @@ connect();
 const buildFilter = (base = {}, userId) =>
   userId !== undefined ? { ...base, userId } : base;
 
+const escapeRegex = (value = '') =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const MATCH_TYPES = {
   COMMAND_EXACT: 'command-exact',
   COMMAND_PREFIX: 'command-prefix',
@@ -149,8 +152,12 @@ export class CommandModel {
    * @param {string} params.query - Search query (keyword or /command)
    * @param {number} params.limit - Max results to return
    * @returns {Promise<Object>} Search results with templates array
+   * @throws {BadRequestError} If userId is not provided
    */
   searchTemplates = async ({ userId, query, limit }) => {
+    if (!userId) {
+      throw new BadRequestError('userId is required for searching templates');
+    }
     this.validateSearchQuery(query);
     const { trimmedQuery, queryLowercase, isCommandQuery } =
       this.normalizeSearchQuery(query);
@@ -176,9 +183,15 @@ export class CommandModel {
 
   /**
    * Validate search query meets minimum requirements
-   * @throws {BadRequestError} If query is empty or too long
+   * @throws {BadRequestError} If query is not a string, empty, or too long
    */
   validateSearchQuery = (query) => {
+    if (typeof query !== 'string') {
+      throw new BadRequestError(
+        "Query parameter 'query' must be a non-empty string",
+      );
+    }
+
     const trimmedQuery = query.trim();
 
     if (!trimmedQuery || trimmedQuery.length === 0) {
@@ -208,14 +221,24 @@ export class CommandModel {
 
   /**
    * Parse and validate search limit parameter
-   * @returns {number} Validated limit within allowed range
+   * @throws {BadRequestError} If limit is not a valid number
+   * @returns {number} Validated limit clamped to allowed range
    */
   parseSearchLimit = (limit) => {
+    if (limit === undefined || limit === null) {
+      return SEARCH_CONFIG.DEFAULT_LIMIT;
+    }
+
+    const parsed = Number(limit);
+
+    if (Number.isNaN(parsed)) {
+      throw new BadRequestError(
+        `Limit parameter must be a valid number between ${SEARCH_CONFIG.MIN_LIMIT} and ${SEARCH_CONFIG.MAX_LIMIT}`,
+      );
+    }
+
     return Math.min(
-      Math.max(
-        parseInt(limit) || SEARCH_CONFIG.DEFAULT_LIMIT,
-        SEARCH_CONFIG.MIN_LIMIT,
-      ),
+      Math.max(parsed, SEARCH_CONFIG.MIN_LIMIT),
       SEARCH_CONFIG.MAX_LIMIT,
     );
   };
@@ -288,10 +311,14 @@ export class CommandModel {
    * Find templates with exact command match
    */
   findExactCommandMatches = async (baseFilter, commandPrefix, limit) => {
+    const escapedOriginalQuery = escapeRegex(commandPrefix);
     return commandMongooseModel
       .find({
         ...baseFilter,
-        commandLower: commandPrefix,
+        $or: [
+          { commandLower: commandPrefix },
+          { command: { $regex: `^${escapedOriginalQuery}$` } },
+        ],
       })
       .select('_id name text command')
       .limit(limit);
@@ -307,10 +334,14 @@ export class CommandModel {
     limit,
   ) => {
     const excludedIds = excludedDocuments.map((doc) => doc._id);
+    const escapedQuery = escapeRegex(commandPrefix);
     return commandMongooseModel
       .find({
         ...baseFilter,
-        commandLower: { $regex: `^${commandPrefix}` },
+        $or: [
+          { commandLower: { $regex: `^${escapedQuery}` } },
+          { command: { $regex: `^${escapedQuery}` } },
+        ],
         _id: { $nin: excludedIds },
       })
       .select('_id name text command')
@@ -327,10 +358,14 @@ export class CommandModel {
     limit,
   ) => {
     const excludedIds = excludedDocuments.map((doc) => doc._id);
+    const escapedQuery = escapeRegex(commandPrefix);
     return commandMongooseModel
       .find({
         ...baseFilter,
-        commandLower: { $regex: commandPrefix },
+        $or: [
+          { commandLower: { $regex: escapedQuery } },
+          { command: { $regex: escapedQuery } },
+        ],
         _id: { $nin: excludedIds },
       })
       .select('_id name text command')
@@ -347,10 +382,16 @@ export class CommandModel {
     originalQuery,
     limit,
   ) => {
+    const escapedQuery = escapeRegex(queryLowercase);
+    const escapedOriginalQuery = escapeRegex(originalQuery);
     const contentMatches = await commandMongooseModel
       .find({
         ...baseFilter,
-        textLower: { $regex: queryLowercase, $options: 'i' },
+        $or: [
+          { textLower: { $regex: escapedQuery } },
+          { text: { $regex: escapedOriginalQuery } },
+          { name: { $regex: escapedOriginalQuery } },
+        ],
       })
       .select('_id name text command')
       .limit(limit)
