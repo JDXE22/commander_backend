@@ -183,13 +183,13 @@ export class CommandModel {
 
     if (!trimmedQuery || trimmedQuery.length === 0) {
       throw new BadRequestError(
-        "Query parameter 'q' must be a non-empty string",
+        "Query parameter 'query' must be a non-empty string",
       );
     }
 
     if (trimmedQuery.length > SEARCH_CONFIG.MAX_QUERY_LENGTH) {
       throw new BadRequestError(
-        `Query parameter 'q' must not exceed ${SEARCH_CONFIG.MAX_QUERY_LENGTH} characters`,
+        `Query parameter 'query' must not exceed ${SEARCH_CONFIG.MAX_QUERY_LENGTH} characters`,
       );
     }
   };

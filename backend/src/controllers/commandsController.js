@@ -119,7 +119,7 @@ export class CommandController {
       if (!searchQuery) {
         return next(
           new BadRequestError(
-            "Query parameter 'q' is required and must be a non-empty string",
+            "Query parameter 'query' is required and must be a non-empty string",
           ),
         );
       }
@@ -129,6 +129,9 @@ export class CommandController {
         query: searchQuery,
         limit: resultLimit,
       });
+
+      res.set('Cache-Control', 'private, no-cache, max-age=0, must-revalidate');
+      res.set('Vary', 'Authorization');
 
       return res.json(searchResults);
     } catch (error) {

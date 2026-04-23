@@ -313,7 +313,7 @@ export const createRouter = ({ commandModel, userModel }) => {
      *     tags: [Commands v2]
      *     parameters:
      *       - in: query
-     *         name: q
+     *         name: query
      *         required: true
      *         schema:
      *           type: string
