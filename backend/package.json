@@ -15,7 +15,9 @@
   "type": "module",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "2.8.5",
+    "csrf-csrf": "^4.0.3",
     "dotenv": "16.4.7",
     "express": "5.1.0",
     "jsonwebtoken": "^9.0.3",
@@ -23,6 +25,7 @@
     "mongoose": "8.13.2",
     "nodemailer": "^8.0.3",
     "swagger-jsdoc": "6.2.8",
-    "swagger-ui-express": "5.0.1"
+    "swagger-ui-express": "5.0.1",
+    "uuid": "^14.0.0"
   }
 }
