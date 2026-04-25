@@ -3,6 +3,7 @@ import { CommandController } from '../controllers/commandsController.js';
 import { AuthController } from '../controllers/authController.js';
 import { getHealth } from '../controllers/healthController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
+import { doubleCsrfProtection } from '../middleware/csrfMiddleware.js';
 import { byTrigger } from '../middleware/triggerMiddleware.js';
 import {
   validateRegisterInput,
@@ -16,7 +17,7 @@ import {
  * Creates the main API router for the application.
  * Consolidates v1 and v2 routes into a single version-aware entry point.
  */
-export const createRouter = ({ commandModel, userModel }) => {
+export const createRouter = ({ commandModel, userModel, refreshTokenModel }) => {
   const rootRouter = Router();
   const commandController = new CommandController({ commandModel });
   const apiVersion = process.env.API_VERSION || 'both';
@@ -47,7 +48,7 @@ export const createRouter = ({ commandModel, userModel }) => {
 
   // 2. v2 Authentication (only when v2 is active and userModel is available)
   if (isV2 && userModel) {
-    const authController = new AuthController({ userModel });
+    const authController = new AuthController({ userModel, refreshTokenModel });
     const v2AuthRouter = Router();
 
     /**
@@ -220,6 +221,82 @@ export const createRouter = ({ commandModel, userModel }) => {
       validateResetPasswordBodyInput,
       authController.resetPasswordWithBody,
     );
+
+    /**
+     * @openapi
+     * /api/v2/auth/refresh:
+     *   post:
+     *     summary: Refresh access token using RT cookie
+     *     description: Issues a new access token and rotates the refresh token. Requires a valid x-csrf-token header and __rt cookie.
+     *     tags: [Auth]
+     *     parameters:
+     *       - in: header
+     *         name: x-csrf-token
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: New access token issued.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 accessToken:
+     *                   type: string
+     *       401:
+     *         description: Invalid, expired, or consumed refresh token.
+     *       403:
+     *         description: CSRF validation failed.
+     */
+    v2AuthRouter.post('/refresh', doubleCsrfProtection, authController.refresh);
+
+    /**
+     * @openapi
+     * /api/v2/auth/logout:
+     *   post:
+     *     summary: Logout from current device
+     *     description: Deletes the current refresh token and clears auth cookies.
+     *     security: [{ bearerAuth: [] }]
+     *     tags: [Auth]
+     *     responses:
+     *       200:
+     *         description: Logged out successfully.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *       401:
+     *         description: Unauthorized.
+     */
+    v2AuthRouter.post('/logout', authMiddleware, authController.logout);
+
+    /**
+     * @openapi
+     * /api/v2/auth/logout-all:
+     *   post:
+     *     summary: Logout from all devices
+     *     description: Revokes all refresh token families for the authenticated user.
+     *     security: [{ bearerAuth: [] }]
+     *     tags: [Auth]
+     *     responses:
+     *       200:
+     *         description: All sessions terminated.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *       401:
+     *         description: Unauthorized.
+     */
+    v2AuthRouter.post('/logout-all', authMiddleware, authController.logoutAll);
 
     rootRouter.use('/v2/auth', v2AuthRouter);
   }
