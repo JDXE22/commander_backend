@@ -4,7 +4,8 @@
   "description": "Commander is a simple command-driven snippet generator that maps specific command inputs to predefined text outputs.",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "start": "node --watch src/mongo-db.js",
     "verify-forgot-password": "node tests/verify_forgot_password.js",
     "test-email-config": "node tests/test_email_config.js"
@@ -27,5 +28,9 @@
     "swagger-jsdoc": "6.2.8",
     "swagger-ui-express": "5.0.1",
     "uuid": "14.0.0"
+  },
+  "devDependencies": {
+    "supertest": "7.2.2",
+    "vitest": "4.1.5"
   }
 }
