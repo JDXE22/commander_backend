@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 import {
   ConflictError,
   UnauthorizedError,
@@ -7,24 +8,49 @@ import {
 import { sendResetPasswordEmail } from '../utils/email.js';
 import { performPasswordReset } from '../utils/passwordReset.js';
 import { FRONTEND_URL } from '../config/config.js';
-import { createToken, hashToken, generateRandomToken } from '../utils/auth.js';
+import {
+  createToken,
+  hashToken,
+  generateRandomToken,
+  createAccessToken,
+  generateRefreshToken,
+} from '../utils/auth.js';
+import { setRefreshTokenCookie, clearRefreshTokenCookie } from '../utils/cookies.js';
+import { generateCsrfToken } from '../middleware/csrfMiddleware.js';
 import {
   SALT_ROUNDS,
   RESET_PASSWORD_TOKEN_EXPIRY_MS,
+  getRtExpirySeconds,
 } from '../config/constants.js';
 
-function formatAuthResponse(user, token) {
+function formatAuthResponse(user, accessToken) {
   return {
     userId: user._id,
     username: user.username,
     email: user.email,
-    token,
+    accessToken,
   };
 }
 
+function issueTokenPair(req, res, refreshTokenModel, user) {
+  const accessToken = createAccessToken(user._id, user.username);
+  const rawRefreshToken = generateRefreshToken();
+  const tokenHash = hashToken(rawRefreshToken);
+  const familyId = uuidv4();
+  const expiresAt = new Date(Date.now() + getRtExpirySeconds() * 1000);
+
+  refreshTokenModel.create({ tokenHash, userId: user._id, familyId, expiresAt });
+
+  setRefreshTokenCookie(res, rawRefreshToken);
+  generateCsrfToken(req, res, { overwrite: true });
+
+  return accessToken;
+}
+
 export class AuthController {
-  constructor({ userModel }) {
+  constructor({ userModel, refreshTokenModel }) {
     this.userModel = userModel;
+    this.refreshTokenModel = refreshTokenModel;
   }
 
   register = async (req, res, next) => {
@@ -46,8 +72,8 @@ export class AuthController {
         input: { username, email, passwordHash },
       });
 
-      const token = createToken(user._id, user.username);
-      res.status(201).json(formatAuthResponse(user, token));
+      const accessToken = issueTokenPair(req, res, this.refreshTokenModel, user);
+      res.status(201).json(formatAuthResponse(user, accessToken));
     } catch (error) {
       next(error);
     }
@@ -67,8 +93,85 @@ export class AuthController {
         throw new UnauthorizedError('Invalid email or password');
       }
 
-      const token = createToken(user._id, user.username);
-      res.json(formatAuthResponse(user, token));
+      const accessToken = issueTokenPair(req, res, this.refreshTokenModel, user);
+      res.json(formatAuthResponse(user, accessToken));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  refresh = async (req, res, next) => {
+    try {
+      const rawRefreshToken = req.cookies['__rt'];
+      if (!rawRefreshToken) {
+        clearRefreshTokenCookie(res);
+        throw new UnauthorizedError('Missing refresh token');
+      }
+
+      const tokenHash = hashToken(rawRefreshToken);
+      const storedToken = await this.refreshTokenModel.findByHash(tokenHash);
+
+      if (!storedToken) {
+        clearRefreshTokenCookie(res);
+        throw new UnauthorizedError('Invalid or expired refresh token');
+      }
+
+      if (storedToken.isConsumed) {
+        // Consumed token presented again — theft detected, revoke entire family
+        await this.refreshTokenModel.revokeFamily(storedToken.familyId);
+        clearRefreshTokenCookie(res);
+        throw new UnauthorizedError('Token reuse detected. All sessions revoked.');
+      }
+
+      // Rotate: consume old token, issue new token pair
+      await this.refreshTokenModel.consumeByHash(tokenHash);
+
+      const newRawRefreshToken = generateRefreshToken();
+      const newTokenHash = hashToken(newRawRefreshToken);
+      const expiresAt = new Date(Date.now() + getRtExpirySeconds() * 1000);
+
+      await this.refreshTokenModel.create({
+        tokenHash: newTokenHash,
+        userId: storedToken.userId,
+        familyId: storedToken.familyId,
+        expiresAt,
+      });
+
+      const user = { _id: storedToken.userId };
+      const accessToken = createAccessToken(storedToken.userId, storedToken.username);
+
+      setRefreshTokenCookie(res, newRawRefreshToken);
+      generateCsrfToken(req, res, { overwrite: true });
+
+      res.json({ accessToken });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  logout = async (req, res, next) => {
+    try {
+      const rawRefreshToken = req.cookies['__rt'];
+      if (rawRefreshToken) {
+        const tokenHash = hashToken(rawRefreshToken);
+        await this.refreshTokenModel.deleteByHash(tokenHash);
+      }
+
+      clearRefreshTokenCookie(res);
+      res.clearCookie('__csrf');
+      res.json({ message: 'Logged out successfully' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  logoutAll = async (req, res, next) => {
+    try {
+      await this.refreshTokenModel.revokeAllForUser(req.user.userId);
+
+      clearRefreshTokenCookie(res);
+      res.clearCookie('__csrf');
+      res.json({ message: 'All sessions terminated' });
     } catch (error) {
       next(error);
     }

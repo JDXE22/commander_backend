@@ -61,6 +61,13 @@ export const errorHandler = (err, req, res, next) => {
       .json({ error: err.code, message: err.message });
   }
 
+  // http-errors (used by csrf-csrf and other middleware)
+  if (err.statusCode && err.statusCode >= 400 && err.statusCode < 500) {
+    return res
+      .status(err.statusCode)
+      .json({ error: err.code || 'HTTP_ERROR', message: err.message });
+  }
+
   console.error(err.stack);
   return res
     .status(500)
