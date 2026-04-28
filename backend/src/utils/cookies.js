@@ -6,7 +6,7 @@ export const setRefreshTokenCookie = (res, token) => {
   res.cookie(RT_COOKIE_NAME, token, {
     httpOnly: true,
     secure: isProduction(),
-    sameSite: 'strict',
+    sameSite: isProduction() ? 'none' : 'lax',
     path: RT_COOKIE_PATH,
     maxAge: getRtExpiryMs(),
   });
@@ -16,7 +16,7 @@ export const clearRefreshTokenCookie = (res) => {
   res.clearCookie(RT_COOKIE_NAME, {
     httpOnly: true,
     secure: isProduction(),
-    sameSite: 'strict',
+    sameSite: isProduction() ? 'none' : 'lax',
     path: RT_COOKIE_PATH,
   });
 };

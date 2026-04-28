@@ -7,11 +7,17 @@ import { requestLogger } from './middleware/loggerMiddleware.js';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.js';
+import { FRONTEND_URL } from './config/config.js';
 
 export const createApp = ({ commandModel, userModel, refreshTokenModel }) => {
   const app = express();
 
-  app.use(cors());
+  app.use(
+    cors({
+      origin: FRONTEND_URL,
+      credentials: true,
+    }),
+  );
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
