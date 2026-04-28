@@ -32,7 +32,7 @@ function createMockUserModel() {
       );
     }),
     findByEmail: vi.fn(async () => null),
-    findById: vi.fn(async () => null),
+    findById: vi.fn(async (id) => users.find((u) => u._id === id) || null),
   };
 }
 
@@ -53,17 +53,18 @@ function createMockRefreshTokenModel() {
       return record;
     }),
     findByHash: vi.fn(async (tokenHash) => {
-      return tokens.find((t) => t.tokenHash === tokenHash) || null;
+      return tokens.find((t) => t.tokenHash === tokenHash && t.expiresAt > new Date()) || null;
     }),
     consumeByHash: vi.fn(async (tokenHash) => {
-      const token = tokens.find((t) => t.tokenHash === tokenHash);
+      const token = tokens.find((t) => t.tokenHash === tokenHash && t.expiresAt > new Date());
       if (token) token.isConsumed = true;
       return token;
     }),
     revokeFamily: vi.fn(async (familyId) => {
-      const count = tokens.filter((t) => t.familyId === familyId).length;
+      const remaining = tokens.filter((t) => t.familyId !== familyId);
+      const count = tokens.length - remaining.length;
       tokens.length = 0;
-      tokens.push(...tokens.filter((t) => t.familyId !== familyId));
+      tokens.push(...remaining);
       return { deletedCount: count };
     }),
     revokeAllForUser: vi.fn(async (userId) => {
@@ -197,6 +198,18 @@ describe('Bifurcated Auth', () => {
       expect(decoded).toHaveProperty('userId');
       expect(decoded).toHaveProperty('username', testUser.username);
     });
+
+    it('should return 500 and set no cookies when RT store create fails', async () => {
+      const { app, refreshTokenModel } = buildApp();
+
+      refreshTokenModel.create.mockRejectedValueOnce(new Error('DB write failed'));
+
+      const res = await registerUser(app, testUser);
+
+      expect(res.status).toBe(500);
+      const cookies = parseCookies(res);
+      expect(cookies).not.toHaveProperty('__rt');
+    });
   });
 
   describe('POST /api/v2/auth/login', () => {
@@ -243,6 +256,29 @@ describe('Bifurcated Auth', () => {
       });
 
       expect(res.status).toBe(401);
+    });
+
+    it('should return 500 and set no cookies when RT store create fails', async () => {
+      const { app, userModel, refreshTokenModel } = buildApp();
+
+      const passwordHash = await bcrypt.hash(testUser.password, 1);
+      userModel._users.push({
+        _id: 'user_1',
+        username: testUser.username,
+        email: testUser.email,
+        passwordHash,
+      });
+
+      refreshTokenModel.create.mockRejectedValueOnce(new Error('DB write failed'));
+
+      const res = await loginUser(app, {
+        email: testUser.email,
+        password: testUser.password,
+      });
+
+      expect(res.status).toBe(500);
+      const cookies = parseCookies(res);
+      expect(cookies).not.toHaveProperty('__rt');
     });
   });
 
@@ -398,6 +434,23 @@ describe('Bifurcated Auth', () => {
 
         expect(res.status).toBe(401);
         expect(res.body.message).toContain('Invalid or expired refresh token');
+      });
+
+      it('should reject expired RT still present in store and clear cookies', async () => {
+        // Back-date the token to simulate TTL delay — record exists but is past expiry
+        for (const token of refreshTokenModel._tokens) {
+          token.expiresAt = new Date(Date.now() - 1000);
+        }
+
+        const res = await request(app)
+          .post('/api/v2/auth/refresh')
+          .set('Cookie', cookieHeader(loginCookies))
+          .set('x-csrf-token', csrfToken);
+
+        expect(res.status).toBe(401);
+        expect(res.body.message).toContain('Invalid or expired refresh token');
+        const cookies = parseCookies(res);
+        expect(cookies).not.toHaveProperty('__rt');
       });
     });
 

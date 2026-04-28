@@ -15,7 +15,10 @@ import {
   createAccessToken,
   generateRefreshToken,
 } from '../utils/auth.js';
-import { setRefreshTokenCookie, clearRefreshTokenCookie } from '../utils/cookies.js';
+import {
+  setRefreshTokenCookie,
+  clearRefreshTokenCookie,
+} from '../utils/cookies.js';
 import { generateCsrfToken } from '../middleware/csrfMiddleware.js';
 import {
   SALT_ROUNDS,
@@ -32,14 +35,19 @@ function formatAuthResponse(user, accessToken) {
   };
 }
 
-function issueTokenPair(req, res, refreshTokenModel, user) {
+async function issueTokenPair(req, res, refreshTokenModel, user) {
   const accessToken = createAccessToken(user._id, user.username);
   const rawRefreshToken = generateRefreshToken();
   const tokenHash = hashToken(rawRefreshToken);
   const familyId = uuidv4();
   const expiresAt = new Date(Date.now() + getRtExpirySeconds() * 1000);
 
-  refreshTokenModel.create({ tokenHash, userId: user._id, familyId, expiresAt });
+  await refreshTokenModel.create({
+    tokenHash,
+    userId: user._id,
+    familyId,
+    expiresAt,
+  });
 
   setRefreshTokenCookie(res, rawRefreshToken);
   generateCsrfToken(req, res, { overwrite: true });
@@ -72,7 +80,12 @@ export class AuthController {
         input: { username, email, passwordHash },
       });
 
-      const accessToken = issueTokenPair(req, res, this.refreshTokenModel, user);
+      const accessToken = await issueTokenPair(
+        req,
+        res,
+        this.refreshTokenModel,
+        user,
+      );
       res.status(201).json(formatAuthResponse(user, accessToken));
     } catch (error) {
       next(error);
@@ -93,7 +106,12 @@ export class AuthController {
         throw new UnauthorizedError('Invalid email or password');
       }
 
-      const accessToken = issueTokenPair(req, res, this.refreshTokenModel, user);
+      const accessToken = await issueTokenPair(
+        req,
+        res,
+        this.refreshTokenModel,
+        user,
+      );
       res.json(formatAuthResponse(user, accessToken));
     } catch (error) {
       next(error);
@@ -116,11 +134,18 @@ export class AuthController {
         throw new UnauthorizedError('Invalid or expired refresh token');
       }
 
+      if (storedToken.expiresAt < new Date()) {
+        clearRefreshTokenCookie(res);
+        throw new UnauthorizedError('Invalid or expired refresh token');
+      }
+
       if (storedToken.isConsumed) {
         // Consumed token presented again — theft detected, revoke entire family
         await this.refreshTokenModel.revokeFamily(storedToken.familyId);
         clearRefreshTokenCookie(res);
-        throw new UnauthorizedError('Token reuse detected. All sessions revoked.');
+        throw new UnauthorizedError(
+          'Token reuse detected. All sessions revoked.',
+        );
       }
 
       // Rotate: consume old token, issue new token pair
@@ -137,8 +162,13 @@ export class AuthController {
         expiresAt,
       });
 
-      const user = { _id: storedToken.userId };
-      const accessToken = createAccessToken(storedToken.userId, storedToken.username);
+      const user = await this.userModel.findById(storedToken.userId);
+      if (!user) {
+        clearRefreshTokenCookie(res);
+        throw new UnauthorizedError('User not found');
+      }
+
+      const accessToken = createAccessToken(user._id, user.username);
 
       setRefreshTokenCookie(res, newRawRefreshToken);
       generateCsrfToken(req, res, { overwrite: true });
