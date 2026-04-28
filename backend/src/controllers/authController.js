@@ -22,8 +22,8 @@ import {
 import { generateCsrfToken } from '../middleware/csrfMiddleware.js';
 import {
   SALT_ROUNDS,
-  RESET_PASSWORD_TOKEN_EXPIRY_MS,
   getRtExpirySeconds,
+  getResetPasswordTokenExpiryMs,
 } from '../config/constants.js';
 
 function formatAuthResponse(user, accessToken) {
@@ -220,7 +220,7 @@ export class AuthController {
       if (user) {
         const resetToken = generateRandomToken();
         const hashedToken = hashToken(resetToken);
-        const resetExpires = Date.now() + RESET_PASSWORD_TOKEN_EXPIRY_MS;
+        const resetExpires = Date.now() + getResetPasswordTokenExpiryMs();
 
         await this.userModel.updateResetFields(user._id, {
           resetToken: hashedToken,

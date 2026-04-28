@@ -5,15 +5,6 @@ import jwt from 'jsonwebtoken';
 import { createApp } from '../src/app.js';
 import { hashToken } from '../src/utils/auth.js';
 
-// --- Environment setup ---
-process.env.AT_SECRET = 'test-at-secret-64chars-long-enough-for-hmac-signing-xxxxxxxxxx';
-process.env.CSRF_SECRET = 'test-csrf-secret-64chars-long-enough-for-hmac-signing-xxxxxxxx';
-process.env.JWT_SECRET = 'test-jwt-secret';
-process.env.AT_EXPIRY_SECONDS = '2';
-process.env.RT_EXPIRY_SECONDS = '604800';
-process.env.RT_BYTE_LENGTH = '48';
-process.env.NODE_ENV = 'test';
-
 // --- In-memory mock factories ---
 
 function createMockUserModel() {
@@ -403,7 +394,6 @@ describe('Bifurcated Auth', () => {
 
     describe('Token expiration', () => {
       it('AT should expire after configured seconds', async () => {
-        // AT_EXPIRY_SECONDS=2 in test env
         const loginRes = await loginUser(app, {
           email: testUser.email,
           password: testUser.password,
@@ -412,7 +402,8 @@ describe('Bifurcated Auth', () => {
         const accessToken = loginRes.body.accessToken;
         const decoded = jwt.decode(accessToken);
 
-        const expectedExpiry = decoded.iat + 2;
+        const expirySeconds = parseInt(process.env.AT_EXPIRY_SECONDS, 10);
+        const expectedExpiry = decoded.iat + expirySeconds;
         expect(decoded.exp).toBe(expectedExpiry);
       });
 

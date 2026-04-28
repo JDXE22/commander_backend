@@ -3,7 +3,7 @@ import { BadRequestError } from './errors.js';
 import { hashToken } from './auth.js';
 import {
   SALT_ROUNDS,
-  RESET_PASSWORD_TOKEN_EXPIRY_MS,
+  getResetPasswordTokenExpiryMs,
 } from '../config/constants.js';
 
 /**
