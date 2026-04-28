@@ -4,8 +4,6 @@ import { AT_SECRET } from '../config/config.js';
 
 export const authMiddleware = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  console.log(`[Auth] Incoming request: ${req.method} ${req.path}`);
-  console.log(`[Auth] Authorization Header: ${authHeader ? 'Present' : 'MISSING'}`);
 
   if (!authHeader) {
     return next(new UnauthorizedError('Missing authorization header'));
@@ -24,11 +22,7 @@ export const authMiddleware = (req, res, next) => {
       username: decoded.username,
     };
     next();
-  } catch (err) {
-    console.error(`[Auth] 401 Unauthorized: ${err.message}`);
-    console.error(`[Auth] Header present: ${!!authHeader}`);
-    console.error(`[Auth] Token slice: ${token?.slice(0, 10)}...`);
-    console.error(`[Auth] AT_SECRET length: ${AT_SECRET?.length}`);
+  } catch {
     return next(new UnauthorizedError('Invalid or expired token'));
   }
 };

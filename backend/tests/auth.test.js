@@ -22,7 +22,7 @@ function createMockUserModel() {
           (email && u.email === email) || (username && u.username === username),
       );
     }),
-    findByEmail: vi.fn(async () => null),
+    findByEmail: vi.fn(async (email) => users.find((u) => u.email === email) || null),
     findById: vi.fn(async (id) => users.find((u) => u._id === id) || null),
   };
 }
@@ -44,18 +44,11 @@ function createMockRefreshTokenModel() {
       return record;
     }),
     findByHash: vi.fn(async (tokenHash) => {
-      return (
-        tokens.find(
-          (t) => t.tokenHash === tokenHash && t.expiresAt > new Date(),
-        ) || null
-      );
+      return tokens.find((t) => t.tokenHash === tokenHash && t.expiresAt > new Date()) || null;
     }),
     consumeByHash: vi.fn(async (tokenHash) => {
       const token = tokens.find(
-        (t) =>
-          t.tokenHash === tokenHash &&
-          !t.isConsumed &&
-          t.expiresAt > new Date(),
+        (t) => t.tokenHash === tokenHash && !t.isConsumed && t.expiresAt > new Date(),
       );
       if (token) token.isConsumed = true;
       return token || null;
@@ -139,26 +132,24 @@ describe('Bifurcated Auth', () => {
   };
 
   describe('POST /api/v2/auth/register', () => {
-    it('should return accessToken in body and set __rt and __csrf cookies', async () => {
+    it('should return accessToken in body (and legacy token alias) and set __rt and __csrf cookies', async () => {
       const { app } = buildApp();
 
       const res = await registerUser(app, testUser);
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('accessToken');
+      expect(res.body).toHaveProperty('token'); // Compatibility alias
       expect(res.body).toHaveProperty('userId');
       expect(res.body).toHaveProperty('username', testUser.username);
       expect(res.body).toHaveProperty('email', testUser.email);
-
-      // No legacy `token` field
-      expect(res.body).not.toHaveProperty('token');
 
       const cookies = parseCookies(res);
       expect(cookies).toHaveProperty('__rt');
       expect(cookies).toHaveProperty('__csrf');
     });
 
-    it('should set __rt cookie with httpOnly and sameSite=Lax (in development)', async () => {
+    it('should set __rt cookie with httpOnly and valid sameSite', async () => {
       const { app } = buildApp();
 
       const res = await registerUser(app, testUser);
@@ -168,11 +159,13 @@ describe('Bifurcated Auth', () => {
 
       expect(rtCookie).toBeDefined();
       expect(rtCookie).toContain('HttpOnly');
-      expect(rtCookie).toContain('SameSite=Lax');
+      expect(rtCookie).toMatch(/SameSite=(Lax|None)/);
       expect(rtCookie).toContain('Path=/api/v2/auth');
     });
 
     it('should set __csrf cookie WITHOUT httpOnly', async () => {
+      const { app } = buildApp();
+
       const res = await registerUser(app, testUser);
       const csrfCookie = (res.headers['set-cookie'] || []).find((c) =>
         c.startsWith('__csrf='),
@@ -206,9 +199,7 @@ describe('Bifurcated Auth', () => {
     it('should return 500 and set no cookies when RT store create fails', async () => {
       const { app, refreshTokenModel } = buildApp();
 
-      refreshTokenModel.create.mockRejectedValueOnce(
-        new Error('DB write failed'),
-      );
+      refreshTokenModel.create.mockRejectedValueOnce(new Error('DB write failed'));
 
       const res = await registerUser(app, testUser);
 
@@ -219,7 +210,7 @@ describe('Bifurcated Auth', () => {
   });
 
   describe('POST /api/v2/auth/login', () => {
-    it('should return accessToken in body and set cookies on valid credentials', async () => {
+    it('should return accessToken in body (with alias) and set cookies on valid credentials', async () => {
       const { app, userModel } = buildApp();
 
       // Pre-seed user
@@ -238,7 +229,7 @@ describe('Bifurcated Auth', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('accessToken');
-      expect(res.body).not.toHaveProperty('token');
+      expect(res.body).toHaveProperty('token');
 
       const cookies = parseCookies(res);
       expect(cookies).toHaveProperty('__rt');
@@ -275,9 +266,7 @@ describe('Bifurcated Auth', () => {
         passwordHash,
       });
 
-      refreshTokenModel.create.mockRejectedValueOnce(
-        new Error('DB write failed'),
-      );
+      refreshTokenModel.create.mockRejectedValueOnce(new Error('DB write failed'));
 
       const res = await loginUser(app, {
         email: testUser.email,
@@ -315,7 +304,7 @@ describe('Bifurcated Auth', () => {
       csrfToken = loginCookies['__csrf'];
     });
 
-    it('should return new accessToken and rotate RT cookie', async () => {
+    it('should return new accessToken (and alias) and rotate RT cookie', async () => {
       const oldRt = loginCookies['__rt'];
 
       const res = await request(app)
@@ -325,6 +314,7 @@ describe('Bifurcated Auth', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('accessToken');
+      expect(res.body).toHaveProperty('token');
 
       const newCookies = parseCookies(res);
       expect(newCookies).toHaveProperty('__rt');

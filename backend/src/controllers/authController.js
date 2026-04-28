@@ -32,6 +32,7 @@ function formatAuthResponse(user, accessToken) {
     username: user.username,
     email: user.email,
     accessToken,
+    token: accessToken, // Alias for backward compatibility
   };
 }
 
@@ -178,7 +179,10 @@ export class AuthController {
       setRefreshTokenCookie(res, newRawRefreshToken);
       generateCsrfToken(req, res, { overwrite: true });
 
-      res.json({ accessToken });
+      res.json({
+        accessToken,
+        token: accessToken, // Alias for backward compatibility
+      });
     } catch (error) {
       next(error);
     }
