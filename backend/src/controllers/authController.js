@@ -180,6 +180,9 @@ export class AuthController {
       generateCsrfToken(req, res, { overwrite: true });
 
       res.json({
+        userId: user._id,
+        username: user.username,
+        email: user.email,
         accessToken,
         token: accessToken, // Alias for backward compatibility
       });
