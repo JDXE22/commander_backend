@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { UnauthorizedError } from '../utils/errors.js';
+import { AT_SECRET } from '../config/config.js';
 
 export const authMiddleware = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -15,8 +16,7 @@ export const authMiddleware = (req, res, next) => {
   }
 
   try {
-    const secret = process.env.AT_SECRET || process.env.JWT_SECRET;
-    const decoded = jwt.verify(token, secret);
+    const decoded = jwt.verify(token, AT_SECRET);
     req.user = {
       userId: decoded.userId,
       username: decoded.username,
