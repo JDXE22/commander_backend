@@ -16,6 +16,7 @@ export const createApp = ({ commandModel, userModel, refreshTokenModel }) => {
     cors({
       origin: FRONTEND_URL,
       credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token'],
     }),
   );
   app.use(express.json());
