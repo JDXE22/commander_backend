@@ -116,6 +116,11 @@ export class AuthController {
         throw new UnauthorizedError('Invalid or expired refresh token');
       }
 
+      if (storedToken.expiresAt < new Date()) {
+        clearRefreshTokenCookie(res);
+        throw new UnauthorizedError('Invalid or expired refresh token');
+      }
+
       if (storedToken.isConsumed) {
         // Consumed token presented again — theft detected, revoke entire family
         await this.refreshTokenModel.revokeFamily(storedToken.familyId);

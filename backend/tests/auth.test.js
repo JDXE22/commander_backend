@@ -53,10 +53,10 @@ function createMockRefreshTokenModel() {
       return record;
     }),
     findByHash: vi.fn(async (tokenHash) => {
-      return tokens.find((t) => t.tokenHash === tokenHash) || null;
+      return tokens.find((t) => t.tokenHash === tokenHash && t.expiresAt > new Date()) || null;
     }),
     consumeByHash: vi.fn(async (tokenHash) => {
-      const token = tokens.find((t) => t.tokenHash === tokenHash);
+      const token = tokens.find((t) => t.tokenHash === tokenHash && t.expiresAt > new Date());
       if (token) token.isConsumed = true;
       return token;
     }),
@@ -433,6 +433,23 @@ describe('Bifurcated Auth', () => {
 
         expect(res.status).toBe(401);
         expect(res.body.message).toContain('Invalid or expired refresh token');
+      });
+
+      it('should reject expired RT still present in store and clear cookies', async () => {
+        // Back-date the token to simulate TTL delay — record exists but is past expiry
+        for (const token of refreshTokenModel._tokens) {
+          token.expiresAt = new Date(Date.now() - 1000);
+        }
+
+        const res = await request(app)
+          .post('/api/v2/auth/refresh')
+          .set('Cookie', cookieHeader(loginCookies))
+          .set('x-csrf-token', csrfToken);
+
+        expect(res.status).toBe(401);
+        expect(res.body.message).toContain('Invalid or expired refresh token');
+        const cookies = parseCookies(res);
+        expect(cookies).not.toHaveProperty('__rt');
       });
     });
 

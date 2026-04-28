@@ -9,12 +9,12 @@ export class RefreshTokenModel {
   }
 
   findByHash(tokenHash) {
-    return RefreshToken.findOne({ tokenHash });
+    return RefreshToken.findOne({ tokenHash, expiresAt: { $gt: new Date() } });
   }
 
   consumeByHash(tokenHash) {
     return RefreshToken.findOneAndUpdate(
-      { tokenHash },
+      { tokenHash, expiresAt: { $gt: new Date() } },
       { isConsumed: true },
       { new: true },
     );
