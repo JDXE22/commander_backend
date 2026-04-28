@@ -1,12 +1,17 @@
-import { RT_COOKIE_NAME, RT_COOKIE_PATH, getRtExpiryMs } from '../config/constants.js';
+import {
+  RT_COOKIE_NAME,
+  RT_COOKIE_PATH,
+  getRtExpiryMs,
+} from '../config/constants.js';
+import { FRONTEND_URL } from '../config/config.js';
 
-const isProduction = () => process.env.NODE_ENV === 'production';
+const isSecure = () => FRONTEND_URL?.startsWith('https://');
 
 export const setRefreshTokenCookie = (res, token) => {
   res.cookie(RT_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: isProduction(),
-    sameSite: 'strict',
+    secure: isSecure(),
+    sameSite: isSecure() ? 'none' : 'lax',
     path: RT_COOKIE_PATH,
     maxAge: getRtExpiryMs(),
   });
@@ -15,8 +20,8 @@ export const setRefreshTokenCookie = (res, token) => {
 export const clearRefreshTokenCookie = (res) => {
   res.clearCookie(RT_COOKIE_NAME, {
     httpOnly: true,
-    secure: isProduction(),
-    sameSite: 'strict',
+    secure: isSecure(),
+    sameSite: isSecure() ? 'none' : 'lax',
     path: RT_COOKIE_PATH,
   });
 };
