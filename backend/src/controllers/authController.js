@@ -137,8 +137,13 @@ export class AuthController {
         expiresAt,
       });
 
-      const user = { _id: storedToken.userId };
-      const accessToken = createAccessToken(storedToken.userId, storedToken.username);
+      const user = await this.userModel.findById(storedToken.userId);
+      if (!user) {
+        clearRefreshTokenCookie(res);
+        throw new UnauthorizedError('User not found');
+      }
+
+      const accessToken = createAccessToken(user._id, user.username);
 
       setRefreshTokenCookie(res, newRawRefreshToken);
       generateCsrfToken(req, res, { overwrite: true });

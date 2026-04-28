@@ -32,7 +32,7 @@ function createMockUserModel() {
       );
     }),
     findByEmail: vi.fn(async () => null),
-    findById: vi.fn(async () => null),
+    findById: vi.fn(async (id) => users.find((u) => u._id === id) || null),
   };
 }
 
