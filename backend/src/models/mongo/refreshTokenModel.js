@@ -14,7 +14,7 @@ export class RefreshTokenModel {
 
   consumeByHash(tokenHash) {
     return RefreshToken.findOneAndUpdate(
-      { tokenHash, expiresAt: { $gt: new Date() } },
+      { tokenHash, isConsumed: false, expiresAt: { $gt: new Date() } },
       { isConsumed: true },
       { new: true },
     );
