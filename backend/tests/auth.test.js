@@ -197,6 +197,18 @@ describe('Bifurcated Auth', () => {
       expect(decoded).toHaveProperty('userId');
       expect(decoded).toHaveProperty('username', testUser.username);
     });
+
+    it('should return 500 and set no cookies when RT store create fails', async () => {
+      const { app, refreshTokenModel } = buildApp();
+
+      refreshTokenModel.create.mockRejectedValueOnce(new Error('DB write failed'));
+
+      const res = await registerUser(app, testUser);
+
+      expect(res.status).toBe(500);
+      const cookies = parseCookies(res);
+      expect(cookies).not.toHaveProperty('__rt');
+    });
   });
 
   describe('POST /api/v2/auth/login', () => {
@@ -243,6 +255,29 @@ describe('Bifurcated Auth', () => {
       });
 
       expect(res.status).toBe(401);
+    });
+
+    it('should return 500 and set no cookies when RT store create fails', async () => {
+      const { app, userModel, refreshTokenModel } = buildApp();
+
+      const passwordHash = await bcrypt.hash(testUser.password, 1);
+      userModel._users.push({
+        _id: 'user_1',
+        username: testUser.username,
+        email: testUser.email,
+        passwordHash,
+      });
+
+      refreshTokenModel.create.mockRejectedValueOnce(new Error('DB write failed'));
+
+      const res = await loginUser(app, {
+        email: testUser.email,
+        password: testUser.password,
+      });
+
+      expect(res.status).toBe(500);
+      const cookies = parseCookies(res);
+      expect(cookies).not.toHaveProperty('__rt');
     });
   });
 

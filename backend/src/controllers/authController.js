@@ -32,14 +32,14 @@ function formatAuthResponse(user, accessToken) {
   };
 }
 
-function issueTokenPair(req, res, refreshTokenModel, user) {
+async function issueTokenPair(req, res, refreshTokenModel, user) {
   const accessToken = createAccessToken(user._id, user.username);
   const rawRefreshToken = generateRefreshToken();
   const tokenHash = hashToken(rawRefreshToken);
   const familyId = uuidv4();
   const expiresAt = new Date(Date.now() + getRtExpirySeconds() * 1000);
 
-  refreshTokenModel.create({ tokenHash, userId: user._id, familyId, expiresAt });
+  await refreshTokenModel.create({ tokenHash, userId: user._id, familyId, expiresAt });
 
   setRefreshTokenCookie(res, rawRefreshToken);
   generateCsrfToken(req, res, { overwrite: true });
@@ -72,7 +72,7 @@ export class AuthController {
         input: { username, email, passwordHash },
       });
 
-      const accessToken = issueTokenPair(req, res, this.refreshTokenModel, user);
+      const accessToken = await issueTokenPair(req, res, this.refreshTokenModel, user);
       res.status(201).json(formatAuthResponse(user, accessToken));
     } catch (error) {
       next(error);
@@ -93,7 +93,7 @@ export class AuthController {
         throw new UnauthorizedError('Invalid email or password');
       }
 
-      const accessToken = issueTokenPair(req, res, this.refreshTokenModel, user);
+      const accessToken = await issueTokenPair(req, res, this.refreshTokenModel, user);
       res.json(formatAuthResponse(user, accessToken));
     } catch (error) {
       next(error);
