@@ -57,9 +57,22 @@ export const FRONTEND_URL = process.env.FRONTEND_URL;
 
 export const JWT_SECRET = process.env.JWT_SECRET;
 export const AT_SECRET = process.env.AT_SECRET || process.env.JWT_SECRET;
+export const CSRF_SECRET = process.env.CSRF_SECRET;
 
-if (!AT_SECRET) {
+const requiredEnvVars = [
+  { value: AT_SECRET, name: 'AT_SECRET (or JWT_SECRET)' },
+  { value: CSRF_SECRET, name: 'CSRF_SECRET' },
+  { value: FRONTEND_URL, name: 'FRONTEND_URL' },
+];
+
+for (const { value, name } of requiredEnvVars) {
+  if (!value) {
+    throw new Error(`Startup Error: ${name} must be set in environment variables.`);
+  }
+}
+
+if (FRONTEND_URL === '*') {
   throw new Error(
-    'Startup Error: AT_SECRET or JWT_SECRET must be set in environment variables.',
+    'Startup Error: FRONTEND_URL cannot be "*" when credentials are enabled. Provide an explicit origin.',
   );
 }

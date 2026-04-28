@@ -10,7 +10,7 @@ export const { doubleCsrfProtection, generateCsrfToken } = doubleCsrf({
   cookieOptions: {
     httpOnly: false, // frontend must read this cookie to send in x-csrf-token header
     secure: isProduction(),
-    sameSite: 'strict',
+    sameSite: isProduction() ? 'none' : 'lax',
     path: '/',
   },
   getCsrfTokenFromRequest: (req) => req.headers['x-csrf-token'],

@@ -151,7 +151,7 @@ describe('Bifurcated Auth', () => {
       expect(cookies).toHaveProperty('__csrf');
     });
 
-    it('should set __rt cookie with httpOnly and sameSite=Strict', async () => {
+    it('should set __rt cookie with httpOnly and sameSite=Lax (in development)', async () => {
       const { app } = buildApp();
 
       const res = await registerUser(app, testUser);
@@ -161,7 +161,7 @@ describe('Bifurcated Auth', () => {
 
       expect(rtCookie).toBeDefined();
       expect(rtCookie).toContain('HttpOnly');
-      expect(rtCookie).toContain('SameSite=Strict');
+      expect(rtCookie).toContain('SameSite=Lax');
       expect(rtCookie).toContain('Path=/api/v2/auth');
     });
 
