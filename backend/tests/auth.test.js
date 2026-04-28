@@ -61,9 +61,10 @@ function createMockRefreshTokenModel() {
       return token;
     }),
     revokeFamily: vi.fn(async (familyId) => {
-      const count = tokens.filter((t) => t.familyId === familyId).length;
+      const remaining = tokens.filter((t) => t.familyId !== familyId);
+      const count = tokens.length - remaining.length;
       tokens.length = 0;
-      tokens.push(...tokens.filter((t) => t.familyId !== familyId));
+      tokens.push(...remaining);
       return { deletedCount: count };
     }),
     revokeAllForUser: vi.fn(async (userId) => {
