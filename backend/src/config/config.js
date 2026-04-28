@@ -54,3 +54,12 @@ export const validateSmtpConfig = () => {
 
 export const EMAIL_FROM = process.env.EMAIL_FROM;
 export const FRONTEND_URL = process.env.FRONTEND_URL;
+
+export const JWT_SECRET = process.env.JWT_SECRET;
+export const AT_SECRET = process.env.AT_SECRET || process.env.JWT_SECRET;
+
+if (!AT_SECRET) {
+  throw new Error(
+    'Startup Error: AT_SECRET or JWT_SECRET must be set in environment variables.',
+  );
+}
