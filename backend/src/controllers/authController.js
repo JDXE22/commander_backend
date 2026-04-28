@@ -148,8 +148,13 @@ export class AuthController {
         );
       }
 
-      // Rotate: consume old token, issue new token pair
-      await this.refreshTokenModel.consumeByHash(tokenHash);
+      // Atomically consume — guard against concurrent requests racing past the isConsumed check
+      const consumed = await this.refreshTokenModel.consumeByHash(tokenHash);
+      if (!consumed) {
+        await this.refreshTokenModel.revokeFamily(storedToken.familyId);
+        clearRefreshTokenCookie(res);
+        throw new UnauthorizedError('Token reuse detected. All sessions revoked.');
+      }
 
       const newRawRefreshToken = generateRefreshToken();
       const newTokenHash = hashToken(newRawRefreshToken);

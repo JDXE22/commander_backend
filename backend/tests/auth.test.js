@@ -56,9 +56,11 @@ function createMockRefreshTokenModel() {
       return tokens.find((t) => t.tokenHash === tokenHash && t.expiresAt > new Date()) || null;
     }),
     consumeByHash: vi.fn(async (tokenHash) => {
-      const token = tokens.find((t) => t.tokenHash === tokenHash && t.expiresAt > new Date());
+      const token = tokens.find(
+        (t) => t.tokenHash === tokenHash && !t.isConsumed && t.expiresAt > new Date(),
+      );
       if (token) token.isConsumed = true;
-      return token;
+      return token || null;
     }),
     revokeFamily: vi.fn(async (familyId) => {
       const remaining = tokens.filter((t) => t.familyId !== familyId);
@@ -96,6 +98,12 @@ function parseCookies(res) {
   const cookieHeaders = res.headers['set-cookie'] || [];
   const cookies = {};
   for (const raw of cookieHeaders) {
+    if (
+      raw.includes('Max-Age=0') ||
+      raw.includes('Expires=Thu, 01 Jan 1970 00:00:00 GMT')
+    ) {
+      continue; // cookie being cleared — treat as absent
+    }
     const [nameVal] = raw.split(';');
     const [name, ...rest] = nameVal.split('=');
     cookies[name.trim()] = rest.join('=').trim();
