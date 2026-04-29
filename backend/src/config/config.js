@@ -59,6 +59,10 @@ export const JWT_SECRET = process.env.JWT_SECRET;
 export const AT_SECRET = process.env.AT_SECRET || process.env.JWT_SECRET;
 export const CSRF_SECRET = process.env.CSRF_SECRET;
 
+export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+export const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL;
+
 const requiredEnvVars = [
   { value: AT_SECRET, name: 'AT_SECRET (or JWT_SECRET)' },
   { value: CSRF_SECRET, name: 'CSRF_SECRET' },
