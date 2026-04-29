@@ -39,3 +39,7 @@ getResetPasswordTokenExpiryMs();
 export const RT_COOKIE_NAME = '__rt';
 export const RT_COOKIE_PATH = '/api/v2/auth';
 export const CSRF_COOKIE_NAME = '__csrf';
+
+// Google OAuth state cookie
+export const OAUTH_STATE_COOKIE_NAME = '__oauth_state';
+export const OAUTH_STATE_MAX_AGE_MS = 600_000; // 10 minutes

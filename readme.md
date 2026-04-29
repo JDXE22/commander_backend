@@ -4,17 +4,18 @@ Commander Backend is a modular Express API for storing and resolving command-bas
 
 Starting with **v2**, it supports multi-user data ownership, allowing users to privately manage their own commands.
 
-## Features
-
-- **Multi-user Support (v2)**: Private command namespaces per user.
-- **Authentication**: Secure registration and login using JWT (JSON Web Tokens).
-- **Password Recovery**: Integrated "Forgot Password" flow via email with REST-compliant token validation.
-- **API Versioning**: Coexistence of v1 (legacy shared) and v2 (authenticated) routes.
-- **Command Management**: Create, read, update, and delete command snippets.
-- **Template Search (v2)**: Full-text search across user's templates by command or keyword with relevance ranking.
-- **Trigger Resolution**: Resolve a snippet by trigger through `/api/v2/commands?trigger=...`.
-- **Health Check**: Dedicated `/api/health` endpoint for monitoring.
-- **Swagger Documentation**: Interactive API docs available at `/api-docs`.
+| Features
+|
+| - **Multi-user Support (v2)**: Private command namespaces per user.
+| - **Authentication**: Secure registration and login using JWT (JSON Web Tokens) and optional Google OAuth (if configured).
+| - **Password Recovery**: Integrated "Forgot Password" flow via email with REST-compliant token validation.
+| - **API Versioning**: Coexistence of v1 (legacy shared) and v2 (authenticated) routes.
+| - **Command Management**: Create, read, update, and delete command snippets.
+| - **Template Search (v2)**: Full-text search across user's templates by command or keyword with relevance ranking.
+| - **Trigger Resolution**: Resolve a snippet by trigger through `/api/v2/commands?trigger=...`.
+| - **Health Check**: Dedicated `/api/health` endpoint for monitoring.
+| - **Swagger Documentation**: Interactive API docs available at `/api-docs`.
+| - **CORS**: Credentials-enabled CORS with explicit `FRONTEND_URL` origin and `x-csrf-token` header support.
 
 ## Tech Stack
 
@@ -35,28 +36,18 @@ npm install
 
 ### Environment Configuration
 
-Create a `.env` file inside the `backend` directory:
+Copy the provided `.env.example` file in the `backend` directory to `.env` and fill in your secrets and configuration values:
 
-```env
-PORT=1234
-DATABASE_URL=mongodb://127.0.0.1:27017/commander
-
-# API Versioning (v1, v2, or both)
-API_VERSION=both
-
-# JWT Configuration
-JWT_SECRET=your_super_secret_key
-
-# SMTP Configuration (for Forgot Password)
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=your_username
-SMTP_PASS=your_password
-EMAIL_FROM="Commander <noreply@example.com>"
-
-# Frontend URL (for password reset links)
-FRONTEND_URL=http://localhost:3000
+```bash
+cp backend/.env.example backend/.env
 ```
+
+Edit `.env` as needed. See comments in `.env.example` for descriptions of each variable.
+
+> **Note:**
+>
+> - Google OAuth is optional. If the Google variables are not set, Google sign-in routes are not mounted.
+> - `FRONTEND_URL` must be an explicit origin (not `*`) for CORS with credentials.
 
 ### Running the Server
 
@@ -78,6 +69,7 @@ npm start
 
 - **Architecture & API Reference**: [ARCHITECTURE.md](./ARCHITECTURE.md)
 - **Example Requests**: [backend/api.http](./backend/api.http)
+- **Google OAuth Spec & Plan**: [specs/google-oauth/](./specs/google-oauth/)
 - **Detailed Design (v2)**: [specs/app-version/SDD_v2.md](./specs/app-version/SDD_v2.md)
 
 ## License
