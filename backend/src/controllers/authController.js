@@ -35,7 +35,7 @@ function formatAuthResponse(user, accessToken) {
   };
 }
 
-async function issueTokenPair(req, res, refreshTokenModel, user) {
+export async function issueTokenPair(req, res, refreshTokenModel, user) {
   const accessToken = createAccessToken(user._id, user.username);
   const rawRefreshToken = generateRefreshToken();
   const tokenHash = hashToken(rawRefreshToken);
