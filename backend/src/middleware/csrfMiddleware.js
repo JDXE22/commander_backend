@@ -9,7 +9,7 @@ export const { doubleCsrfProtection, generateCsrfToken } = doubleCsrf({
   getSessionIdentifier: () => '',
   cookieName: CSRF_COOKIE_NAME,
   cookieOptions: {
-    httpOnly: false, // frontend must read this cookie to send in x-csrf-token header
+    httpOnly: true,
     secure: isSecure(),
     sameSite: isSecure() ? 'none' : 'lax',
     path: '/',

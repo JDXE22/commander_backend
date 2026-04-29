@@ -26,13 +26,13 @@ import {
   getResetPasswordTokenExpiryMs,
 } from '../config/constants.js';
 
-function formatAuthResponse(user, accessToken) {
+function formatAuthResponse(user, accessToken, csrfToken) {
   return {
     userId: user._id,
     username: user.username,
     email: user.email,
     accessToken,
-    token: accessToken, // Alias for backward compatibility
+    csrfToken,
   };
 }
 
@@ -51,9 +51,9 @@ async function issueTokenPair(req, res, refreshTokenModel, user) {
   });
 
   setRefreshTokenCookie(res, rawRefreshToken);
-  generateCsrfToken(req, res, { overwrite: true });
+  const csrfToken = generateCsrfToken(req, res, { overwrite: true });
 
-  return accessToken;
+  return { accessToken, csrfToken };
 }
 
 export class AuthController {
@@ -81,13 +81,13 @@ export class AuthController {
         input: { username, email, passwordHash },
       });
 
-      const accessToken = await issueTokenPair(
+      const { accessToken, csrfToken } = await issueTokenPair(
         req,
         res,
         this.refreshTokenModel,
         user,
       );
-      res.status(201).json(formatAuthResponse(user, accessToken));
+      res.status(201).json(formatAuthResponse(user, accessToken, csrfToken));
     } catch (error) {
       next(error);
     }
@@ -107,13 +107,13 @@ export class AuthController {
         throw new UnauthorizedError('Invalid email or password');
       }
 
-      const accessToken = await issueTokenPair(
+      const { accessToken, csrfToken } = await issueTokenPair(
         req,
         res,
         this.refreshTokenModel,
         user,
       );
-      res.json(formatAuthResponse(user, accessToken));
+      res.json(formatAuthResponse(user, accessToken, csrfToken));
     } catch (error) {
       next(error);
     }
@@ -154,7 +154,9 @@ export class AuthController {
       if (!consumed) {
         await this.refreshTokenModel.revokeFamily(storedToken.familyId);
         clearRefreshTokenCookie(res);
-        throw new UnauthorizedError('Token reuse detected. All sessions revoked.');
+        throw new UnauthorizedError(
+          'Token reuse detected. All sessions revoked.',
+        );
       }
 
       const newRawRefreshToken = generateRefreshToken();
@@ -173,19 +175,12 @@ export class AuthController {
         clearRefreshTokenCookie(res);
         throw new UnauthorizedError('User not found');
       }
-
       const accessToken = createAccessToken(user._id, user.username);
 
       setRefreshTokenCookie(res, newRawRefreshToken);
-      generateCsrfToken(req, res, { overwrite: true });
 
-      res.json({
-        userId: user._id,
-        username: user.username,
-        email: user.email,
-        accessToken,
-        token: accessToken, // Alias for backward compatibility
-      });
+      const csrfToken = generateCsrfToken(req, res, { overwrite: true });
+      res.json(formatAuthResponse(user, accessToken, csrfToken));
     } catch (error) {
       next(error);
     }
