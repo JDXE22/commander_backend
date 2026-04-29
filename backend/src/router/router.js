@@ -17,7 +17,11 @@ import {
  * Creates the main API router for the application.
  * Consolidates v1 and v2 routes into a single version-aware entry point.
  */
-export const createRouter = ({ commandModel, userModel, refreshTokenModel }) => {
+export const createRouter = ({
+  commandModel,
+  userModel,
+  refreshTokenModel,
+}) => {
   const rootRouter = Router();
   const commandController = new CommandController({ commandModel });
   const apiVersion = process.env.API_VERSION || 'both';

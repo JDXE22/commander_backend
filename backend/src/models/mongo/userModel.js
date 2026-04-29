@@ -40,6 +40,18 @@ export class UserModel {
     );
   };
 
+  findByGoogleId = async (googleId) => {
+    return userMongooseModel.findOne({ googleId });
+  };
+
+  linkGoogleId = async (userId, googleId) => {
+    return userMongooseModel.findByIdAndUpdate(
+      userId,
+      { googleId },
+      { new: true },
+    );
+  };
+
   updatePassword = async (userId, passwordHash) => {
     return userMongooseModel.findByIdAndUpdate(
       userId,

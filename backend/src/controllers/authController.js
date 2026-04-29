@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import crypto from 'node:crypto';
 import { v4 as uuidv4 } from 'uuid';
 import {
   ConflictError,
@@ -24,7 +25,31 @@ import {
   SALT_ROUNDS,
   getRtExpirySeconds,
   getResetPasswordTokenExpiryMs,
+  OAUTH_STATE_COOKIE_NAME,
+  OAUTH_STATE_MAX_AGE_MS,
 } from '../config/constants.js';
+import {
+  generateOAuthState,
+  getGoogleAuthUrl,
+  exchangeCodeForProfile,
+} from '../utils/googleOAuth.js';
+
+const isProduction = () => process.env.NODE_ENV === 'production';
+
+async function generateUniqueUsername(profile, userModel) {
+  const base = profile.email.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '');
+  let candidate = base;
+  let attempts = 0;
+
+  while (attempts < 5) {
+    const existing = await userModel.findOne({ username: candidate });
+    if (!existing) return candidate;
+    candidate = `${base}_${crypto.randomBytes(3).toString('hex')}`;
+    attempts++;
+  }
+
+  return `user_${crypto.randomBytes(6).toString('hex')}`;
+}
 
 function formatAuthResponse(user, accessToken) {
   return {
@@ -99,6 +124,12 @@ export class AuthController {
       const user = await this.userModel.findOne({ email });
       if (!user) {
         throw new UnauthorizedError('Invalid email or password');
+      }
+
+      if (!user.passwordHash) {
+        throw new UnauthorizedError(
+          'This account uses Google Sign-In. Please use the Google button to log in.',
+        );
       }
 
       const isValidPassword = await bcrypt.compare(password, user.passwordHash);
@@ -259,6 +290,64 @@ export class AuthController {
       res.json({ message: 'Password has been reset successfully' });
     } catch (error) {
       next(error);
+    }
+  };
+
+  googleRedirect = async (req, res, next) => {
+    try {
+      const state = generateOAuthState();
+
+      res.cookie(OAUTH_STATE_COOKIE_NAME, state, {
+        httpOnly: true,
+        secure: isProduction(),
+        sameSite: isProduction() ? 'none' : 'lax',
+        maxAge: OAUTH_STATE_MAX_AGE_MS,
+        path: '/api/v2/auth',
+      });
+
+      const authUrl = getGoogleAuthUrl(state);
+      res.redirect(authUrl);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  googleCallback = async (req, res, next) => {
+    try {
+      const { code, state } = req.query;
+      const storedState = req.cookies[OAUTH_STATE_COOKIE_NAME];
+
+      res.clearCookie(OAUTH_STATE_COOKIE_NAME, { path: '/api/v2/auth' });
+
+      if (!state || !storedState || state !== storedState) {
+        return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
+      }
+
+      const profile = await exchangeCodeForProfile(code);
+
+      let user = await this.userModel.findByGoogleId(profile.googleId);
+
+      if (!user) {
+        user = await this.userModel.findOne({ email: profile.email });
+        if (user) {
+          user = await this.userModel.linkGoogleId(user._id, profile.googleId);
+        } else {
+          const username = await generateUniqueUsername(profile, this.userModel);
+          user = await this.userModel.create({
+            input: {
+              username,
+              email: profile.email,
+              googleId: profile.googleId,
+            },
+          });
+        }
+      }
+
+      await issueTokenPair(req, res, this.refreshTokenModel, user);
+
+      res.redirect(FRONTEND_URL);
+    } catch (error) {
+      res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
     }
   };
 }
