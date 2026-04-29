@@ -81,12 +81,13 @@ The application primarily runs in **MongoDB mode** for production and v2 feature
 
 ## Key Paths
 
-| Path                           | Role                                                         |
-| ------------------------------ | ------------------------------------------------------------ |
-| `backend/src/app.js`           | Main Express factory. Configures CORS, logging, and routing. |
-| `backend/src/router/router.js` | Mounts v1 (public) and v2 (authenticated) API paths.         |
-| `backend/src/utils/email.js`   | Manages SMTP transporter for password reset emails.          |
-| `backend/src/utils/auth.js`    | Core logic for JWT signing and password hashing.             |
+| Path                               | Role                                                                                                                            |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `backend/src/app.js`               | Main Express factory. Configures CORS (with explicit allowed headers and origin), logging, and routing.                         |
+| `backend/src/router/router.js`     | Mounts v1 (public) and v2 (authenticated) API paths. Conditionally mounts Google OAuth routes if environment variables are set. |
+| `backend/src/utils/googleOAuth.js` | Google OAuth2 utility functions (client, state, profile exchange).                                                              |
+| `backend/src/utils/email.js`       | Manages SMTP transporter for password reset emails.                                                                             |
+| `backend/src/utils/auth.js`        | Core logic for JWT signing and password hashing.                                                                                |
 
 ## API Summary
 
@@ -102,6 +103,8 @@ The API is versioned. v1 is maintained for backward compatibility, while v2 requ
 | ------ | ------------------------------------ | ------------------------------------------------- |
 | `POST` | `/api/v2/auth/register`              | Register a new user account.                      |
 | `POST` | `/api/v2/auth/login`                 | Authenticate and receive JWT.                     |
+| `GET`  | `/api/v2/auth/google`                | Initiate Google OAuth sign-in (if enabled).       |
+| `GET`  | `/api/v2/auth/google/callback`       | Google OAuth callback (if enabled).               |
 | `POST` | `/api/v2/auth/forgot-password`       | Request a password reset link via email.          |
 | `POST` | `/api/v2/auth/reset-password/:token` | Reset password using a valid token (URL param).   |
 | `POST` | `/api/v2/auth/password-resets`       | Reset password using a token in the request body. |
@@ -121,17 +124,23 @@ The API is versioned. v1 is maintained for backward compatibility, while v2 requ
 
 The application is configured via environment variables:
 
-| Variable       | Description                                     | Default |
-| -------------- | ----------------------------------------------- | ------- |
-| `PORT`         | Port number for the Express server.             | 1234    |
-| `DATABASE_URL` | MongoDB connection string.                      | -       |
-| `API_VERSION`  | `v1`, `v2`, or `both`. Controls route mounting. | `both`  |
-| `JWT_SECRET`   | Secret key for signing JSON Web Tokens.         | -       |
-| `SMTP_HOST`    | SMTP server for sending reset emails.           | -       |
-| `SMTP_PORT`    | SMTP port (e.g., 587 or 465).                   | -       |
-| `SMTP_USER`    | SMTP authentication username.                   | -       |
-| `SMTP_PASS`    | SMTP authentication password.                   | -       |
-| `FRONTEND_URL` | Base URL for password reset links.              | -       |
+| Variable               | Description                                                   | Default |
+| ---------------------- | ------------------------------------------------------------- | ------- |
+| `PORT`                 | Port number for the Express server.                           | 1234    |
+| `DATABASE_URL`         | MongoDB connection string.                                    | -       |
+| `API_VERSION`          | `v1`, `v2`, or `both`. Controls route mounting.               | `both`  |
+| `JWT_SECRET`           | Secret key for signing JSON Web Tokens.                       | -       |
+| `AT_SECRET`            | Access token secret (bifurcated auth).                        | -       |
+| `CSRF_SECRET`          | Secret for CSRF token generation.                             | -       |
+| `GOOGLE_CLIENT_ID`     | OAuth 2.0 Client ID from Google Cloud Console (optional).     | -       |
+| `GOOGLE_CLIENT_SECRET` | OAuth 2.0 Client Secret from Google Cloud Console (optional). | -       |
+| `GOOGLE_CALLBACK_URL`  | Full callback URL registered in Google Console (optional).    | -       |
+| `SMTP_HOST`            | SMTP server for sending reset emails.                         | -       |
+| `SMTP_PORT`            | SMTP port (e.g., 587 or 465).                                 | -       |
+| `SMTP_USER`            | SMTP authentication username.                                 | -       |
+| `SMTP_PASS`            | SMTP authentication password.                                 | -       |
+| `EMAIL_FROM`           | Email sender address.                                         | -       |
+| `FRONTEND_URL`         | Base URL for password reset links and CORS origin.            | -       |
 
 ## Security Notes
 
@@ -139,3 +148,5 @@ The application is configured via environment variables:
 - **JWT**: Tokens include `userId` and are used for all `v2` requests.
 - **Ownership**: Every command in v2 is linked to a `userId`. The system prevents users from accessing or modifying commands they do not own.
 - **Email Security**: SMTP configuration is validated at startup to ensure the "Forgot Password" service is reliable.
+- **Google OAuth**: If Google OAuth environment variables are set, users can sign in or link accounts via Google. The system supports mixed local/Google authentication and gracefully degrades if not configured.
+- **CORS**: CORS is enabled with credentials and requires an explicit `FRONTEND_URL` origin. The `x-csrf-token` header is allowed for secure CSRF protection.
