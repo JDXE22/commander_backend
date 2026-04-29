@@ -302,6 +302,45 @@ export const createRouter = ({
      */
     v2AuthRouter.post('/logout-all', authMiddleware, authController.logoutAll);
 
+    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+      /**
+       * @openapi
+       * /api/v2/auth/google:
+       *   get:
+       *     summary: Initiate Google OAuth sign-in
+       *     description: Redirects the user to Google's OAuth consent screen. Sets a short-lived httpOnly state cookie for CSRF protection.
+       *     tags: [Auth]
+       *     responses:
+       *       302:
+       *         description: Redirect to Google consent screen.
+       */
+      v2AuthRouter.get('/google', authController.googleRedirect);
+
+      /**
+       * @openapi
+       * /api/v2/auth/google/callback:
+       *   get:
+       *     summary: Google OAuth callback
+       *     description: Receives the authorization code from Google, validates state, resolves/creates user, issues RT+CSRF cookies, and redirects to the frontend.
+       *     tags: [Auth]
+       *     parameters:
+       *       - in: query
+       *         name: code
+       *         required: true
+       *         schema:
+       *           type: string
+       *       - in: query
+       *         name: state
+       *         required: true
+       *         schema:
+       *           type: string
+       *     responses:
+       *       302:
+       *         description: Redirect to frontend on success, or to login page with error on failure.
+       */
+      v2AuthRouter.get('/google/callback', authController.googleCallback);
+    }
+
     rootRouter.use('/v2/auth', v2AuthRouter);
   }
 
