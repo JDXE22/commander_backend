@@ -8,6 +8,7 @@ Starting with **v2**, it supports multi-user data ownership, allowing users to p
 |
 | - **Multi-user Support (v2)**: Private command namespaces per user.
 | - **Authentication**: Secure registration and login using JWT (JSON Web Tokens) and optional Google OAuth (if configured).
+| - **Bifurcated Authentication**: Dual-token system with short-lived Access Tokens (15-min) and long-lived Refresh Tokens (7-day httpOnly cookies). Silent refresh on expiry, token rotation, theft detection, and logout-all functionality.
 | - **Password Recovery**: Integrated "Forgot Password" flow via email with REST-compliant token validation.
 | - **API Versioning**: Coexistence of v1 (legacy shared) and v2 (authenticated) routes.
 | - **Command Management**: Create, read, update, and delete command snippets.
@@ -16,6 +17,7 @@ Starting with **v2**, it supports multi-user data ownership, allowing users to p
 | - **Health Check**: Dedicated `/api/health` endpoint for monitoring.
 | - **Swagger Documentation**: Interactive API docs available at `/api-docs`.
 | - **CORS**: Credentials-enabled CORS with explicit `FRONTEND_URL` origin and `x-csrf-token` header support.
+| - **CSRF Protection**: Stateless HMAC-signed Double-Submit Cookie pattern on sensitive endpoints.
 
 ## Tech Stack
 
@@ -70,6 +72,7 @@ npm start
 - **Architecture & API Reference**: [ARCHITECTURE.md](./ARCHITECTURE.md)
 - **Example Requests**: [backend/api.http](./backend/api.http)
 - **Google OAuth Spec & Plan**: [specs/google-oauth/](./specs/google-oauth/)
+- **Bifurcated Authentication Spec**: [specs/bifurcated-auth/](./specs/bifurcated-auth/)
 - **Detailed Design (v2)**: [specs/app-version/SDD_v2.md](./specs/app-version/SDD_v2.md)
 
 ## License
