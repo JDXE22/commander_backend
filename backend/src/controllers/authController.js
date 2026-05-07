@@ -334,7 +334,10 @@ export class AuthController {
         if (user) {
           user = await this.userModel.linkGoogleId(user._id, profile.googleId);
         } else {
-          const username = await generateUniqueUsername(profile, this.userModel);
+          const username = await generateUniqueUsername(
+            profile,
+            this.userModel,
+          );
           user = await this.userModel.create({
             input: {
               username,
@@ -345,7 +348,12 @@ export class AuthController {
         }
       }
 
-      const { accessToken, csrfToken } = await issueTokenPair(req, res, this.refreshTokenModel, user);
+      const { accessToken, csrfToken } = await issueTokenPair(
+        req,
+        res,
+        this.refreshTokenModel,
+        user,
+      );
 
       const params = new URLSearchParams({
         accessToken,
@@ -354,7 +362,7 @@ export class AuthController {
         username: user.username,
         email: user.email,
       });
-      res.redirect(`${FRONTEND_URL}?${params}`);
+      res.redirect(`${FRONTEND_URL}#${params}`);
     } catch (error) {
       res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
     }
