@@ -345,9 +345,16 @@ export class AuthController {
         }
       }
 
-      await issueTokenPair(req, res, this.refreshTokenModel, user);
+      const { accessToken, csrfToken } = await issueTokenPair(req, res, this.refreshTokenModel, user);
 
-      res.redirect(FRONTEND_URL);
+      const params = new URLSearchParams({
+        accessToken,
+        csrfToken,
+        userId: String(user._id),
+        username: user.username,
+        email: user.email,
+      });
+      res.redirect(`${FRONTEND_URL}?${params}`);
     } catch (error) {
       res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
     }
