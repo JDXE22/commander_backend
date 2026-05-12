@@ -18,6 +18,7 @@ if (!process.env.JWT_SECRET) process.env.JWT_SECRET = 'test-jwt-secret';
 if (!process.env.GOOGLE_CLIENT_ID) process.env.GOOGLE_CLIENT_ID = 'test-google-id';
 if (!process.env.GOOGLE_CLIENT_SECRET) process.env.GOOGLE_CLIENT_SECRET = 'test-google-secret';
 if (!process.env.GOOGLE_CALLBACK_URL) process.env.GOOGLE_CALLBACK_URL = 'http://localhost:3000/api/v2/auth/google/callback';
+if (!process.env.FRONTEND_URL) process.env.FRONTEND_URL = 'http://localhost:3000';
 if (!process.env.AT_EXPIRY_SECONDS) process.env.AT_EXPIRY_SECONDS = '3600';
 if (!process.env.RT_EXPIRY_SECONDS) process.env.RT_EXPIRY_SECONDS = '604800';
 if (!process.env.RT_BYTE_LENGTH) process.env.RT_BYTE_LENGTH = '32';
