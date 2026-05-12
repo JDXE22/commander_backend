@@ -20,7 +20,9 @@ function createMockUserModel() {
           (email && u.email === email) || (username && u.username === username),
       );
     }),
-    findByEmail: vi.fn(async (email) => users.find((u) => u.email === email) || null),
+    findByEmail: vi.fn(
+      async (email) => users.find((u) => u.email === email) || null,
+    ),
     findById: vi.fn(async (id) => users.find((u) => u._id === id) || null),
     create: vi.fn(async ({ input }) => {
       const user = { _id: `user_${Date.now()}`, ...input };
@@ -39,7 +41,9 @@ function createMockRefreshTokenModel() {
       tokens.push(token);
       return token;
     }),
-    findByHash: vi.fn(async (hash) => tokens.find((t) => t.tokenHash === hash) || null),
+    findByHash: vi.fn(
+      async (hash) => tokens.find((t) => t.tokenHash === hash) || null,
+    ),
     consumeByHash: vi.fn(async (hash) => {
       const token = tokens.find((t) => t.tokenHash === hash && !t.isConsumed);
       if (token) {
@@ -147,7 +151,10 @@ describe('Auth Core Logic TDD', () => {
 
       const res = await request(app)
         .post('/api/v2/auth/login')
-        .send({ email: 'nonexistent@example.com', password: testUser.password });
+        .send({
+          email: 'nonexistent@example.com',
+          password: testUser.password,
+        });
 
       expect(res.status).toBe(401);
     });
@@ -167,10 +174,10 @@ describe('Auth Core Logic TDD', () => {
     it('should fail if account only uses Google Sign-In', async () => {
       const { app, userModel } = buildApp();
       // No passwordHash means Google Auth only
-      userModel._users.push({ 
-        username: 'googleuser', 
-        email: 'google@example.com', 
-        googleId: 'g-123' 
+      userModel._users.push({
+        username: 'googleuser',
+        email: 'google@example.com',
+        googleId: 'g-123',
       });
 
       const res = await request(app)
@@ -185,24 +192,12 @@ describe('Auth Core Logic TDD', () => {
   describe('POST /api/v2/auth/logout', () => {
     it('should logout and clear cookies', async () => {
       const { app, refreshTokenModel } = buildApp();
-      
-      // Logout requires authentication (AT)
-      const accessToken = 'fake-at';
-      vi.mock('../src/utils/auth.js', async () => {
-        const actual = await vi.importActual('../src/utils/auth.js');
-        return {
-          ...actual,
-          verifyAccessToken: vi.fn(() => ({ userId: 'user_1', username: 'test' })),
-        };
-      });
 
-      // Wait, mocking verifyAccessToken globally might be tricky. 
-      // Instead, let's use a real-looking AT if we can, or just mock the middleware if possible.
-      // Actually, createApp uses authMiddleware.
-      
-      // Let's use jwt.sign to create a valid AT for the test
       const jwt = (await import('jsonwebtoken')).default;
-      const at = jwt.sign({ userId: 'user_1', username: 'test' }, process.env.AT_SECRET);
+      const at = jwt.sign(
+        { userId: 'user_1', username: 'test' },
+        process.env.AT_SECRET,
+      );
 
       const res = await request(app)
         .post('/api/v2/auth/logout')
@@ -211,29 +206,34 @@ describe('Auth Core Logic TDD', () => {
 
       expect(res.status).toBe(200);
       expect(refreshTokenModel.deleteByHash).toHaveBeenCalled();
-      
+
       const cookies = res.headers['set-cookie'] || [];
-      expect(cookies.some(c => c.includes('__rt=;'))).toBe(true);
+      expect(cookies.some((c) => c.includes('__rt=;'))).toBe(true);
     });
   });
 
   describe('POST /api/v2/auth/refresh', () => {
     it('should rotate refresh token successfully', async () => {
       const { app, userModel, refreshTokenModel } = buildApp();
-      userModel._users.push({ _id: 'user_1', username: 'test', email: 'test@test.com' });
-      
+      userModel._users.push({
+        _id: 'user_1',
+        username: 'test',
+        email: 'test@test.com',
+      });
+
       // Need a valid RT hash in store
       const oldRt = 'old-rt';
       const crypto = await import('node:crypto');
-      const hashToken = (t) => crypto.createHash('sha256').update(t).digest('hex');
+      const hashToken = (t) =>
+        crypto.createHash('sha256').update(t).digest('hex');
       const oldHash = hashToken(oldRt);
-      
+
       refreshTokenModel._tokens.push({
         tokenHash: oldHash,
         userId: 'user_1',
         familyId: 'fam_1',
         expiresAt: new Date(Date.now() + 10000),
-        isConsumed: false
+        isConsumed: false,
       });
 
       const res = await request(app)
@@ -244,10 +244,10 @@ describe('Auth Core Logic TDD', () => {
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('accessToken');
       expect(refreshTokenModel.consumeByHash).toHaveBeenCalledWith(oldHash);
-      
+
       const cookies = res.headers['set-cookie'] || [];
-      expect(cookies.some(c => c.includes('__rt='))).toBe(true);
-      expect(cookies.some(c => c.includes(oldRt))).toBe(false);
+      expect(cookies.some((c) => c.includes('__rt='))).toBe(true);
+      expect(cookies.some((c) => c.includes(oldRt))).toBe(false);
     });
 
     it('should fail if refresh token is missing', async () => {
@@ -258,19 +258,24 @@ describe('Auth Core Logic TDD', () => {
 
     it('should detect reuse and revoke family', async () => {
       const { app, userModel, refreshTokenModel } = buildApp();
-      userModel._users.push({ _id: 'user_1', username: 'test', email: 'test@test.com' });
-      
+      userModel._users.push({
+        _id: 'user_1',
+        username: 'test',
+        email: 'test@test.com',
+      });
+
       const reusedRt = 'reused-rt';
       const crypto = await import('node:crypto');
-      const hashToken = (t) => crypto.createHash('sha256').update(t).digest('hex');
+      const hashToken = (t) =>
+        crypto.createHash('sha256').update(t).digest('hex');
       const reusedHash = hashToken(reusedRt);
-      
+
       refreshTokenModel._tokens.push({
         tokenHash: reusedHash,
         userId: 'user_1',
         familyId: 'fam_1',
         expiresAt: new Date(Date.now() + 10000),
-        isConsumed: true // ALREADY CONSUMED
+        isConsumed: true, // ALREADY CONSUMED
       });
 
       const res = await request(app)
@@ -285,9 +290,12 @@ describe('Auth Core Logic TDD', () => {
   describe('POST /api/v2/auth/logout-all', () => {
     it('should revoke all tokens for user', async () => {
       const { app, refreshTokenModel } = buildApp();
-      
+
       const jwt = (await import('jsonwebtoken')).default;
-      const at = jwt.sign({ userId: 'user_1', username: 'test' }, process.env.AT_SECRET);
+      const at = jwt.sign(
+        { userId: 'user_1', username: 'test' },
+        process.env.AT_SECRET,
+      );
 
       const res = await request(app)
         .post('/api/v2/auth/logout-all')
