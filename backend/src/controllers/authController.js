@@ -89,17 +89,15 @@ export class AuthController {
 
   register = async (req, res, next) => {
     try {
-      const { username, email, password } = req.body;
+      const { email, password } = req.body;
 
-      const existingUser = await this.userModel.findOne({ username, email });
+      const existingUser = await this.userModel.findOne({ email });
       if (existingUser) {
-        const isSameUsername =
-          existingUser.username.localeCompare(username, undefined, {
-            sensitivity: 'base',
-          }) === 0;
-        const field = isSameUsername ? 'Username' : 'Email';
-        throw new ConflictError(`${field} is already taken`);
+        throw new ConflictError('Email is already taken');
       }
+
+      const baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '');
+      const username = `${baseUsername}_${Math.random().toString(36).slice(2, 7)}`;
 
       const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
       const user = await this.userModel.create({

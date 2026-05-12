@@ -2,9 +2,9 @@ import { BadRequestError } from '../utils/errors.js';
 import { MIN_PASSWORD_LENGTH } from '../config/constants.js';
 
 export const validateRegisterInput = (req, res, next) => {
-  const { username, email, password } = req.body;
-  if (!username || !email || !password) {
-    throw new BadRequestError('Username, email, and password are required');
+  const { email, password } = req.body;
+  if (!email || !password) {
+    throw new BadRequestError('Email and password are required');
   }
   if (password.length < MIN_PASSWORD_LENGTH) {
     throw new BadRequestError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long`);
