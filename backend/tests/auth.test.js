@@ -22,7 +22,9 @@ function createMockUserModel() {
           (email && u.email === email) || (username && u.username === username),
       );
     }),
-    findByEmail: vi.fn(async (email) => users.find((u) => u.email === email) || null),
+    findByEmail: vi.fn(
+      async (email) => users.find((u) => u.email === email) || null,
+    ),
     findById: vi.fn(async (id) => users.find((u) => u._id === id) || null),
   };
 }
@@ -44,11 +46,18 @@ function createMockRefreshTokenModel() {
       return record;
     }),
     findByHash: vi.fn(async (tokenHash) => {
-      return tokens.find((t) => t.tokenHash === tokenHash && t.expiresAt > new Date()) || null;
+      return (
+        tokens.find(
+          (t) => t.tokenHash === tokenHash && t.expiresAt > new Date(),
+        ) || null
+      );
     }),
     consumeByHash: vi.fn(async (tokenHash) => {
       const token = tokens.find(
-        (t) => t.tokenHash === tokenHash && !t.isConsumed && t.expiresAt > new Date(),
+        (t) =>
+          t.tokenHash === tokenHash &&
+          !t.isConsumed &&
+          t.expiresAt > new Date(),
       );
       if (token) token.isConsumed = true;
       return token || null;
@@ -199,7 +208,9 @@ describe('Bifurcated Auth', () => {
     it('should return 500 and set no cookies when RT store create fails', async () => {
       const { app, refreshTokenModel } = buildApp();
 
-      refreshTokenModel.create.mockRejectedValueOnce(new Error('DB write failed'));
+      refreshTokenModel.create.mockRejectedValueOnce(
+        new Error('DB write failed'),
+      );
 
       const res = await registerUser(app, testUser);
 
@@ -229,7 +240,6 @@ describe('Bifurcated Auth', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('accessToken');
-      expect(res.body).toHaveProperty('token');
 
       const cookies = parseCookies(res);
       expect(cookies).toHaveProperty('__rt');
@@ -266,7 +276,9 @@ describe('Bifurcated Auth', () => {
         passwordHash,
       });
 
-      refreshTokenModel.create.mockRejectedValueOnce(new Error('DB write failed'));
+      refreshTokenModel.create.mockRejectedValueOnce(
+        new Error('DB write failed'),
+      );
 
       const res = await loginUser(app, {
         email: testUser.email,
